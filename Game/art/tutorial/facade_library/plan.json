@@ -1,0 +1,127 @@
+{
+  "socket_y": {
+    "upper": 0.36,
+    "lower": 0.66
+  },
+  "world_size": [
+    6,
+    2
+  ],
+  "bridge_index": 5,
+  "sequence": [
+    "01_quiet_start",
+    "02_descending_run",
+    "03_quiet_lower",
+    "04_rising_service",
+    "05_bridge_termination",
+    "BRIDGE",
+    "06_twin_origin",
+    "07_interwoven_crossing",
+    "08_manifold_split",
+    "09_quiet_terminal"
+  ],
+  "assets": [
+    {
+      "id": "01_quiet_start",
+      "left": [],
+      "right": [
+        "blue_upper"
+      ],
+      "density": "quiet",
+      "brief": "Quiet opening wall: mostly beautifully weathered concrete, subtle moss and one small low amber fixture. A single blue-grey utility pipe emerges from a neat wall penetration in the right third, turns to horizontal and exits RIGHT edge at UPPER socket, y=32%. No pipe at left edge. Leave generous quiet concrete, no central busy service bay."
+    },
+    {
+      "id": "02_descending_run",
+      "left": [
+        "blue_upper"
+      ],
+      "right": [
+        "blue_lower"
+      ],
+      "density": "medium",
+      "brief": "Blue-grey steel main enters LEFT at UPPER socket y=32%, travels across upper-left, descends through a smooth broad pair of right-angle bends within the central area, exits RIGHT at LOWER socket y=66%. Add believable flanges, fixing brackets, one small weathered isolator box and one amber maintenance lamp, localized ivy. This is a directional descending route, not a loop."
+    },
+    {
+      "id": "03_quiet_lower",
+      "left": [
+        "blue_lower"
+      ],
+      "right": [
+        "blue_lower"
+      ],
+      "density": "quiet",
+      "brief": "Quiet low pipe corridor: blue-grey main enters LEFT and exits RIGHT at LOWER sockets y=66%, straight and level with occasional flanges and clamps. Upper two thirds mostly beautiful large aged concrete slabs, fine cracks, subtle water stains and sparse moss. A small drain grille and restrained old mounting marks only; no valve wheel, no electrical cabinet, no bright central lamp. Restful composition, less is more."
+    },
+    {
+      "id": "04_rising_service",
+      "left": [
+        "blue_lower"
+      ],
+      "right": [
+        "blue_upper"
+      ],
+      "density": "rich",
+      "brief": "Blue-grey main enters LEFT at LOWER y=66%, curves upward through a recessed service area and exits RIGHT at UPPER y=32%. Include a finely detailed valve wheel and small local copper conduits linking a battered service box, logical occlusion where these pass over or behind the blue main. One or two amber protected work lights illuminate the central fittings. Strong authored detail, no looping repeated pipeline."
+    },
+    {
+      "id": "05_bridge_termination",
+      "left": [
+        "blue_upper"
+      ],
+      "right": [],
+      "density": "medium",
+      "brief": "Bridge approach termination: blue-grey main enters LEFT at UPPER y=32%, continues into the left-middle then bends into a wall-mounted isolation manifold and disappears into a properly flanged wall penetration. No pipe exits right edge. Right half is quieter heavily weathered concrete with sparse creepers and a faded vent cover. One warm lamp near the manifold. Clearly end the run before an open bridge, no pipe stub arbitrarily cut at the right edge."
+    },
+    {
+      "id": "06_twin_origin",
+      "left": [],
+      "right": [
+        "blue_upper",
+        "copper_lower"
+      ],
+      "density": "rich",
+      "brief": "New twin-run origin after the bridge. No pipes enter left edge. In central-left a beautifully recessed compact pump/service bank and two flanged wall penetrations feed separate blue-grey steel and aged copper/brown pipes. They turn right and exit RIGHT at UPPER y=32% (blue) and LOWER y=66% (copper). Make sources and routes physically understandable, detailed valves, bolts and restrained warm lights. Quiet concrete at far left."
+    },
+    {
+      "id": "07_interwoven_crossing",
+      "left": [
+        "blue_upper",
+        "copper_lower"
+      ],
+      "right": [
+        "copper_upper",
+        "blue_lower"
+      ],
+      "density": "rich",
+      "brief": "A convincing one-time pipe crossing. LEFT ports: blue-grey steel UPPER y=32%, aged copper LOWER y=66%. RIGHT ports: copper UPPER y=32%, blue-grey steel LOWER y=66%. Route the two through broad curved rises/descents and a single clear overlapping crossover in the central area, with one visibly behind the other and excellent occlusion. Preserve blue/copper identities, do not fuse them. Clamps and flanges, ivy in select cracks, subtle amber work light. No closed loop or repeating wave pattern."
+    },
+    {
+      "id": "08_manifold_split",
+      "left": [
+        "copper_upper",
+        "blue_lower"
+      ],
+      "right": [
+        "copper_upper"
+      ],
+      "density": "medium",
+      "brief": "LEFT ports copper UPPER y=32%, blue-grey LOWER y=66%. Copper continues to RIGHT UPPER y=32%, with gentle routing around a small upper service niche. Blue lower run terminates logically in a detailed flanged pressure/control manifold and disappears into the wall. A tiny cool status indicator, one amber lamp and restrained ivy. No lower pipe exits right. Clear readable routing rather than maximum clutter."
+    },
+    {
+      "id": "09_quiet_terminal",
+      "left": [
+        "copper_upper"
+      ],
+      "right": [],
+      "density": "quiet",
+      "brief": "Quiet final wall. Aged copper pipe enters LEFT UPPER y=32%, travels only into the left-central third then turns into a bolted wall penetration with a small shutoff. No right pipe exits. Most of the wall is peaceful blue-grey concrete with exquisite fine chipped edges, restrained cracks, old runoff, a small worn vent and sparse delicate ivy. One subtle amber lamp near the pipe termination. No big valve wheel or busy cabinet, no large mound of foliage."
+    },
+    {
+      "id": "10_plain_relief",
+      "left": [],
+      "right": [],
+      "density": "quiet",
+      "brief": "Spare quiet wall with no pipes at either edge and no major service equipment. Beautiful substantial aged blue-grey concrete slabs with careful chipped edges, natural water stains, subtle mineral deposits, one disused small vent, sparse moss in cracks, a few tiny fixing holes. Predominantly open concrete, fine material detail and exquisite painting. No bright central lamp, valve wheel or cabinet. A calm architectural breathing space, not a blank flat fill."
+    }
+  ]
+}

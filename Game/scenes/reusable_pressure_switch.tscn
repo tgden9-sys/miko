@@ -1,0 +1,6 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/miko8_pressure_switch.gd" id="1"]
+[ext_resource type="PackedScene" path="res://models/environment/pressure_switch_v2/pressure_switch_v2.glb" id="2"]
+[node name="PressureSwitch" type="Node3D"]
+script = ExtResource("1")
+[node name="SwitchModel" parent="." instance=ExtResource("2")]

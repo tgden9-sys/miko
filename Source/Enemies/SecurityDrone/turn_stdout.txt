@@ -1,0 +1,3 @@
+00:07.468  blend            | Read blend: "C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\security_drone_rig.blend"
+01:21.843  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_00.png'
+01:25.421  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_01.png'

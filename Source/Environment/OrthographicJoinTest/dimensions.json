@@ -1,0 +1,18 @@
+{
+  "camera": "Orthographic; no horizontal camera yaw; parallel pavement lines",
+  "length_m": 12,
+  "width_m": 2.8,
+  "walking_z": 0,
+  "join_x": 0,
+  "walkway": [
+    -6,
+    0
+  ],
+  "bridge": [
+    0,
+    6
+  ],
+  "rail_height_m": 1,
+  "join": "Shared load-bearing pier, expansion joint, rear-corner lamp. No obstacle in lane.",
+  "status": "Native 3D visual prototype. Not installed in the game. Procedural materials need baking for export."
+}

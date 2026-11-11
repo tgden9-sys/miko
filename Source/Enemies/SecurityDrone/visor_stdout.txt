@@ -1,0 +1,10 @@
+00:07.469  blend            | Read blend: "C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\security_drone_rig.blend"
+00:08.750  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\tgden\.thumbnails\large\blender_22168_c5aa506926eae640a11a6c1cba78f752.png.png"
+01:20.703  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\body_alert.png'
+01:24.250  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\drone_preview_alert.png'
+Info: Saved as "security_drone_rig.blend"
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\body_alert.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\drone_preview_alert.png
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

@@ -1,0 +1,63 @@
+{
+  "machinery_left": {
+    "source_parts": 380,
+    "vertices": 41544,
+    "triangles": 81484,
+    "surfaces": 9,
+    "materials": [
+      "DR Warm aggregate concrete",
+      "DR Graphite iron",
+      "DR Satin zinc hardware",
+      "DR Weathered slate enamel",
+      "DR Slate enamel edgework",
+      "DR Glazed brown porcelain",
+      "DR Oxidised brown iron",
+      "DR Faded ochre safety rail",
+      "DR Aged instrument ivory"
+    ],
+    "bounds_godot": {
+      "min": [
+        -2.875,
+        0.0,
+        -1.75
+      ],
+      "max": [
+        2.875,
+        4.25,
+        1.756
+      ]
+    }
+  },
+  "machinery_right": {
+    "source_parts": 452,
+    "vertices": 47440,
+    "triangles": 92960,
+    "surfaces": 9,
+    "materials": [
+      "DR Warm aggregate concrete",
+      "DR Graphite iron",
+      "DR Satin zinc hardware",
+      "DR Weathered slate enamel",
+      "DR Slate enamel edgework",
+      "DR Glazed brown porcelain",
+      "DR Oxidised brown iron",
+      "DR Aged instrument ivory",
+      "DR Faded ochre safety rail"
+    ],
+    "bounds_godot": {
+      "min": [
+        -2.875,
+        0.0,
+        -1.75
+      ],
+      "max": [
+        2.875,
+        4.1,
+        1.756
+      ]
+    }
+  },
+  "coordinate_system": "Godot Y up; exposed detailed fronts face +Z; origin at deck Y=0",
+  "placement": "Left (25,0,-5), right (40,0,-5). No rotation. Keep near side Z=-3.25 behind walking lane.",
+  "authoring": "Manufactured bevels and fasteners are physical geometry. Textures are only material albedo. Core glTF metallic/roughness PBR; 11 surfaces maximum."
+}

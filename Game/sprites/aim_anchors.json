@@ -1,0 +1,658 @@
+{
+  "aim_left_arm_down40": [
+    34.66,
+    26.33
+  ],
+  "aim_left_arm_down38": [
+    34.91,
+    25.61
+  ],
+  "aim_left_arm_down36": [
+    35.15,
+    24.87
+  ],
+  "aim_left_arm_down34": [
+    35.37,
+    24.12
+  ],
+  "aim_left_arm_down32": [
+    35.57,
+    23.36
+  ],
+  "aim_left_arm_down30": [
+    35.75,
+    22.59
+  ],
+  "aim_left_arm_down28": [
+    35.92,
+    21.81
+  ],
+  "aim_left_arm_down26": [
+    36.07,
+    21.02
+  ],
+  "aim_left_arm_down24": [
+    36.2,
+    20.23
+  ],
+  "aim_left_arm_down22": [
+    36.31,
+    19.43
+  ],
+  "aim_left_arm_down20": [
+    36.4,
+    18.62
+  ],
+  "aim_left_arm_down18": [
+    36.48,
+    17.81
+  ],
+  "aim_left_arm_down16": [
+    36.53,
+    16.99
+  ],
+  "aim_left_arm_down14": [
+    36.57,
+    16.18
+  ],
+  "aim_left_arm_down12": [
+    36.58,
+    15.36
+  ],
+  "aim_left_arm_down10": [
+    36.58,
+    14.54
+  ],
+  "aim_left_arm_down8": [
+    36.56,
+    13.72
+  ],
+  "aim_left_arm_down6": [
+    36.52,
+    12.91
+  ],
+  "aim_left_arm_down4": [
+    36.46,
+    12.1
+  ],
+  "aim_left_arm_down2": [
+    36.38,
+    11.29
+  ],
+  "aim_left_arm": [
+    36.28,
+    10.48
+  ],
+  "aim_left_arm_up2": [
+    36.16,
+    9.68
+  ],
+  "aim_left_arm_up4": [
+    36.03,
+    8.89
+  ],
+  "aim_left_arm_up6": [
+    35.87,
+    8.11
+  ],
+  "aim_left_arm_up8": [
+    35.7,
+    7.33
+  ],
+  "aim_left_arm_up10": [
+    35.51,
+    6.56
+  ],
+  "aim_left_arm_up12": [
+    35.31,
+    5.81
+  ],
+  "aim_left_arm_up14": [
+    35.08,
+    5.06
+  ],
+  "aim_left_arm_up16": [
+    34.84,
+    4.33
+  ],
+  "aim_left_arm_up18": [
+    34.58,
+    3.61
+  ],
+  "aim_left_arm_up20": [
+    34.3,
+    2.9
+  ],
+  "aim_left_arm_up22": [
+    34.01,
+    2.21
+  ],
+  "aim_left_arm_up24": [
+    33.7,
+    1.54
+  ],
+  "aim_left_arm_up26": [
+    33.38,
+    0.88
+  ],
+  "aim_left_arm_up28": [
+    33.04,
+    0.24
+  ],
+  "aim_left_arm_up30": [
+    32.68,
+    -0.39
+  ],
+  "aim_left_arm_up32": [
+    32.32,
+    -0.99
+  ],
+  "aim_left_arm_up34": [
+    31.93,
+    -1.58
+  ],
+  "aim_left_arm_up36": [
+    31.54,
+    -2.14
+  ],
+  "aim_left_arm_up38": [
+    31.13,
+    -2.68
+  ],
+  "aim_left_arm_up40": [
+    30.71,
+    -3.21
+  ],
+  "aim_left_arm_left_down40": [
+    -39.96,
+    25.77
+  ],
+  "aim_left_arm_left_down38": [
+    -39.99,
+    25.07
+  ],
+  "aim_left_arm_left_down36": [
+    -40.02,
+    24.36
+  ],
+  "aim_left_arm_left_down34": [
+    -40.05,
+    23.63
+  ],
+  "aim_left_arm_left_down32": [
+    -40.07,
+    22.88
+  ],
+  "aim_left_arm_left_down30": [
+    -40.09,
+    22.13
+  ],
+  "aim_left_arm_left_down28": [
+    -40.11,
+    21.37
+  ],
+  "aim_left_arm_left_down26": [
+    -40.12,
+    20.59
+  ],
+  "aim_left_arm_left_down24": [
+    -40.13,
+    19.81
+  ],
+  "aim_left_arm_left_down22": [
+    -40.14,
+    19.02
+  ],
+  "aim_left_arm_left_down20": [
+    -40.14,
+    18.22
+  ],
+  "aim_left_arm_left_down18": [
+    -40.14,
+    17.42
+  ],
+  "aim_left_arm_left_down16": [
+    -40.14,
+    16.61
+  ],
+  "aim_left_arm_left_down14": [
+    -40.13,
+    15.8
+  ],
+  "aim_left_arm_left_down12": [
+    -40.12,
+    14.99
+  ],
+  "aim_left_arm_left_down10": [
+    -40.1,
+    14.17
+  ],
+  "aim_left_arm_left_down8": [
+    -40.08,
+    13.35
+  ],
+  "aim_left_arm_left_down6": [
+    -40.06,
+    12.53
+  ],
+  "aim_left_arm_left_down4": [
+    -40.03,
+    11.72
+  ],
+  "aim_left_arm_left_down2": [
+    -40.0,
+    10.9
+  ],
+  "aim_left_arm_left": [
+    -39.97,
+    10.09
+  ],
+  "aim_left_arm_left_up2": [
+    -39.94,
+    9.28
+  ],
+  "aim_left_arm_left_up4": [
+    -39.9,
+    8.48
+  ],
+  "aim_left_arm_left_up6": [
+    -39.86,
+    7.68
+  ],
+  "aim_left_arm_left_up8": [
+    -39.81,
+    6.9
+  ],
+  "aim_left_arm_left_up10": [
+    -39.76,
+    6.11
+  ],
+  "aim_left_arm_left_up12": [
+    -39.71,
+    5.34
+  ],
+  "aim_left_arm_left_up14": [
+    -39.66,
+    4.58
+  ],
+  "aim_left_arm_left_up16": [
+    -39.6,
+    3.82
+  ],
+  "aim_left_arm_left_up18": [
+    -39.54,
+    3.08
+  ],
+  "aim_left_arm_left_up20": [
+    -39.47,
+    2.36
+  ],
+  "aim_left_arm_left_up22": [
+    -39.41,
+    1.64
+  ],
+  "aim_left_arm_left_up24": [
+    -39.34,
+    0.94
+  ],
+  "aim_left_arm_left_up26": [
+    -39.27,
+    0.25
+  ],
+  "aim_left_arm_left_up28": [
+    -39.2,
+    -0.41
+  ],
+  "aim_left_arm_left_up30": [
+    -39.12,
+    -1.07
+  ],
+  "aim_left_arm_left_up32": [
+    -39.04,
+    -1.7
+  ],
+  "aim_left_arm_left_up34": [
+    -38.96,
+    -2.32
+  ],
+  "aim_left_arm_left_up36": [
+    -38.88,
+    -2.92
+  ],
+  "aim_left_arm_left_up38": [
+    -38.8,
+    -3.49
+  ],
+  "aim_left_arm_left_up40": [
+    -38.71,
+    -4.05
+  ],
+  "aim_right_arm_down40": [
+    42.38,
+    26.81
+  ],
+  "aim_right_arm_down38": [
+    42.73,
+    26.09
+  ],
+  "aim_right_arm_down36": [
+    43.07,
+    25.35
+  ],
+  "aim_right_arm_down34": [
+    43.38,
+    24.61
+  ],
+  "aim_right_arm_down32": [
+    43.66,
+    23.85
+  ],
+  "aim_right_arm_down30": [
+    43.92,
+    23.08
+  ],
+  "aim_right_arm_down28": [
+    44.16,
+    22.31
+  ],
+  "aim_right_arm_down26": [
+    44.37,
+    21.52
+  ],
+  "aim_right_arm_down24": [
+    44.56,
+    20.73
+  ],
+  "aim_right_arm_down22": [
+    44.72,
+    19.93
+  ],
+  "aim_right_arm_down20": [
+    44.85,
+    19.12
+  ],
+  "aim_right_arm_down18": [
+    44.96,
+    18.31
+  ],
+  "aim_right_arm_down16": [
+    45.04,
+    17.5
+  ],
+  "aim_right_arm_down14": [
+    45.1,
+    16.68
+  ],
+  "aim_right_arm_down12": [
+    45.13,
+    15.87
+  ],
+  "aim_right_arm_down10": [
+    45.13,
+    15.05
+  ],
+  "aim_right_arm_down8": [
+    45.11,
+    14.23
+  ],
+  "aim_right_arm_down6": [
+    45.06,
+    13.41
+  ],
+  "aim_right_arm_down4": [
+    44.99,
+    12.6
+  ],
+  "aim_right_arm_down2": [
+    44.89,
+    11.79
+  ],
+  "aim_right_arm": [
+    44.76,
+    10.98
+  ],
+  "aim_right_arm_up2": [
+    44.61,
+    10.18
+  ],
+  "aim_right_arm_up4": [
+    44.43,
+    9.39
+  ],
+  "aim_right_arm_up6": [
+    44.23,
+    8.6
+  ],
+  "aim_right_arm_up8": [
+    44.0,
+    7.82
+  ],
+  "aim_right_arm_up10": [
+    43.74,
+    7.05
+  ],
+  "aim_right_arm_up12": [
+    43.46,
+    6.29
+  ],
+  "aim_right_arm_up14": [
+    43.16,
+    5.54
+  ],
+  "aim_right_arm_up16": [
+    42.83,
+    4.81
+  ],
+  "aim_right_arm_up18": [
+    42.48,
+    4.08
+  ],
+  "aim_right_arm_up20": [
+    42.11,
+    3.37
+  ],
+  "aim_right_arm_up22": [
+    41.72,
+    2.68
+  ],
+  "aim_right_arm_up24": [
+    41.3,
+    2.0
+  ],
+  "aim_right_arm_up26": [
+    40.86,
+    1.34
+  ],
+  "aim_right_arm_up28": [
+    40.4,
+    0.69
+  ],
+  "aim_right_arm_up30": [
+    39.92,
+    0.06
+  ],
+  "aim_right_arm_up32": [
+    39.42,
+    -0.55
+  ],
+  "aim_right_arm_up34": [
+    38.9,
+    -1.14
+  ],
+  "aim_right_arm_up36": [
+    38.36,
+    -1.71
+  ],
+  "aim_right_arm_up38": [
+    37.8,
+    -2.26
+  ],
+  "aim_right_arm_up40": [
+    37.22,
+    -2.79
+  ],
+  "aim_right_arm_left_down40": [
+    -23.31,
+    27.22
+  ],
+  "aim_right_arm_left_down38": [
+    -23.59,
+    26.48
+  ],
+  "aim_right_arm_left_down36": [
+    -23.84,
+    25.72
+  ],
+  "aim_right_arm_left_down34": [
+    -24.08,
+    24.95
+  ],
+  "aim_right_arm_left_down32": [
+    -24.29,
+    24.18
+  ],
+  "aim_right_arm_left_down30": [
+    -24.49,
+    23.39
+  ],
+  "aim_right_arm_left_down28": [
+    -24.66,
+    22.6
+  ],
+  "aim_right_arm_left_down26": [
+    -24.82,
+    21.8
+  ],
+  "aim_right_arm_left_down24": [
+    -24.95,
+    21.0
+  ],
+  "aim_right_arm_left_down22": [
+    -25.06,
+    20.19
+  ],
+  "aim_right_arm_left_down20": [
+    -25.15,
+    19.38
+  ],
+  "aim_right_arm_left_down18": [
+    -25.22,
+    18.56
+  ],
+  "aim_right_arm_left_down16": [
+    -25.26,
+    17.75
+  ],
+  "aim_right_arm_left_down14": [
+    -25.28,
+    16.93
+  ],
+  "aim_right_arm_left_down12": [
+    -25.29,
+    16.11
+  ],
+  "aim_right_arm_left_down10": [
+    -25.27,
+    15.29
+  ],
+  "aim_right_arm_left_down8": [
+    -25.22,
+    14.48
+  ],
+  "aim_right_arm_left_down6": [
+    -25.16,
+    13.67
+  ],
+  "aim_right_arm_left_down4": [
+    -25.07,
+    12.86
+  ],
+  "aim_right_arm_left_down2": [
+    -24.97,
+    12.06
+  ],
+  "aim_right_arm_left": [
+    -24.84,
+    11.27
+  ],
+  "aim_right_arm_left_up2": [
+    -24.69,
+    10.48
+  ],
+  "aim_right_arm_left_up4": [
+    -24.52,
+    9.7
+  ],
+  "aim_right_arm_left_up6": [
+    -24.32,
+    8.93
+  ],
+  "aim_right_arm_left_up8": [
+    -24.11,
+    8.17
+  ],
+  "aim_right_arm_left_up10": [
+    -23.88,
+    7.43
+  ],
+  "aim_right_arm_left_up12": [
+    -23.62,
+    6.69
+  ],
+  "aim_right_arm_left_up14": [
+    -23.35,
+    5.96
+  ],
+  "aim_right_arm_left_up16": [
+    -23.06,
+    5.25
+  ],
+  "aim_right_arm_left_up18": [
+    -22.75,
+    4.56
+  ],
+  "aim_right_arm_left_up20": [
+    -22.42,
+    3.88
+  ],
+  "aim_right_arm_left_up22": [
+    -22.07,
+    3.21
+  ],
+  "aim_right_arm_left_up24": [
+    -21.7,
+    2.57
+  ],
+  "aim_right_arm_left_up26": [
+    -21.31,
+    1.94
+  ],
+  "aim_right_arm_left_up28": [
+    -20.91,
+    1.33
+  ],
+  "aim_right_arm_left_up30": [
+    -20.49,
+    0.73
+  ],
+  "aim_right_arm_left_up32": [
+    -20.06,
+    0.16
+  ],
+  "aim_right_arm_left_up34": [
+    -19.61,
+    -0.39
+  ],
+  "aim_right_arm_left_up36": [
+    -19.15,
+    -0.92
+  ],
+  "aim_right_arm_left_up38": [
+    -18.67,
+    -1.42
+  ],
+  "aim_right_arm_left_up40": [
+    -18.17,
+    -1.91
+  ]
+}

@@ -1,0 +1,44 @@
+19:05:47 | INFO: Data are loaded, start creating Blender stuff
+19:05:47 | INFO: Blender create Mesh node geometry_0
+19:05:55 | INFO: glTF import finished in 7.67s
+00:36.484  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\tgden\.thumbnails\large\blender_17488_c5aa506926eae640a11a6c1cba78f752.png.png"
+01:42.515  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\body_idle.png'
+01:45.515  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\body_alert.png'
+01:47.406  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\left_blaster.png'
+01:49.109  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\right_blaster.png'
+01:52.250  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\drone_preview_idle.png'
+01:55.187  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\drone_preview_alert.png'
+01:58.234  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_00.png'
+02:01.265  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_01.png'
+02:04.468  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_02.png'
+02:07.515  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_03.png'
+02:10.343  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_04.png'
+02:13.078  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_05.png'
+02:16.093  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_06.png'
+02:18.922  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_07.png'
+02:21.703  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_08.png'
+02:24.343  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_09.png'
+GROUP Left_Blaster 36483
+GROUP Right_Blaster 34907
+SEPARATED Left_Blaster 36483 815778
+SEPARATED Right_Blaster 34907 780871
+Info: Saved as "security_drone_rig.blend"
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\body_idle.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\body_alert.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\left_blaster.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\right_blaster.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\drone_preview_idle.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\drone_preview_alert.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_00.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_01.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_02.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_03.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_04.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_05.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_06.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_07.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_08.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Game\sprites\security_drone\turn_09.png
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

@@ -1,0 +1,7 @@
+sparse: One sparse climbing ivy cutout, asymmetric diagonal stem with just 12-20 small heart shaped leaves, two delicate short side trails, large transparent gaps, muted dusty blue-green and olive, a few dry ochre leaves. Narrow irregular silhouette.
+
+moss: One low broad irregular cushion of creeping moss with tiny round stonecrop leaves and very short trailing tendrils over a ledge. Fine moss velvet, small fern-like sprouts in two places, muted olive and deep green. Mostly horizontal silhouette, no long ivy vines, patchy natural edges.
+
+Shared prompt: Reusable industrial anime game foliage asset. Same grounded detailed painterly finish as trailing_ivy.png reference. True transparent alpha around and between plants; no wall, pot, concrete, floor, shadow backdrop, lettering or lighting effects. Front orthographic view, soft diffuse light. Single cluster centred with transparent padding. Restrained colours, no neon green. Match reference leaf scale and surface detail but use a distinct shape. Built-in image generation. Saved as ivy_sparse.png and moss_short.png.
+
+Library: dense trailing ivy, sparse ivy, short moss/stonecrop. SurfaceDetailLayers uses deterministic variants, scale, flipping and small placement changes. Three shared materials reuse the existing decoration-card count. Bridge supports use sparse ivy and a short moss patch. No movement/collision changes.

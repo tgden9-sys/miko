@@ -1,0 +1,10 @@
+{
+  "source_triangles": 418987,
+  "game_triangles": 59998,
+  "dimensions_godot": [
+    6.4,
+    4.2,
+    3.0
+  ],
+  "source": "workshop_original.glb"
+}

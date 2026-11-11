@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Climb Enter. Keywords: animation, climb, enter, humanoid, locomotion, parkour, retargeting. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

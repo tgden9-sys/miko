@@ -1,0 +1,44 @@
+{
+  "vertices": 691872,
+  "islands": 22611,
+  "bones": [
+    "Root",
+    "Torso",
+    "Head",
+    "Open_Shoulder",
+    "Open_Elbow",
+    "Open_Wrist",
+    "Weapon_Shoulder",
+    "Weapon_Elbow",
+    "Weapon_Wrist",
+    "Far_Wheel",
+    "Middle_Wheel",
+    "Near_Wheel"
+  ],
+  "group_vertices": {
+    "Open_Wrist": 13206,
+    "Open_Elbow": 10331,
+    "Open_Shoulder": 24529,
+    "Far_Wheel": 43125,
+    "Middle_Wheel": 78157,
+    "Root": 87858,
+    "Torso": 245967,
+    "Head": 37831,
+    "Near_Wheel": 55000,
+    "Weapon_Shoulder": 26480,
+    "Weapon_Elbow": 37314,
+    "Weapon_Wrist": 32074
+  },
+  "actions": [
+    "Idle",
+    "Drive_Forward",
+    "Pivot_Left",
+    "Pivot_Right",
+    "Head_Scan",
+    "Raise_Weapon",
+    "Fire_Recoil",
+    "Open_Arm_Test"
+  ],
+  "blend": "C:\\Users\\tgden\\Desktop\\MIKO\\Source\\Enemies\\SecurityRobot\\security_robot_rig.blend",
+  "glb": "C:\\Users\\tgden\\Desktop\\MIKO\\Source\\Enemies\\SecurityRobot\\security_robot_rig.glb"
+}

@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/miko8_service_pedestal.gd" id="1"]
+[ext_resource type="PackedScene" path="res://models/props/service_pedestal/service_pedestal.glb" id="2"]
+
+[sub_resource type="BoxShape3D" id="Chassis"]
+size = Vector3(1.31, 0.845, 1.22)
+
+[sub_resource type="BoxShape3D" id="RearGuard"]
+size = Vector3(1.05, 0.54, 0.27)
+
+[node name="ServicePedestal" type="StaticBody3D"]
+script = ExtResource("1")
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="ChassisCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.12, 0.4225, -0.012)
+shape = SubResource("Chassis")
+
+[node name="RearGuardCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-0.12, 1.115, -0.51)
+shape = SubResource("RearGuard")
+
+[node name="CanisterSeat" type="Marker3D" parent="."]
+position = Vector3(-0.1131, 0.885, 0.01392)
+
+[node name="Approach" type="Marker3D" parent="."]
+position = Vector3(-0.24, 0, 1.55)

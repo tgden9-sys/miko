@@ -1,0 +1,60 @@
+[
+  {
+    "name": "geometry_0",
+    "type": "MESH",
+    "parent": "world",
+    "location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation_euler": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "vertices": 691872,
+    "bounds_min": [
+      -0.5007929801940918,
+      -0.28587764501571655,
+      -0.4728778600692749
+    ],
+    "bounds_max": [
+      0.5005967617034912,
+      0.28611838817596436,
+      0.4726303219795227
+    ],
+    "materials": [
+      "Material_0"
+    ]
+  },
+  {
+    "name": "world",
+    "type": "EMPTY",
+    "parent": null,
+    "location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation_euler": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "vertices": 0,
+    "bounds_min": null,
+    "bounds_max": null,
+    "materials": []
+  }
+]

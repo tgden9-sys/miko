@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Sprint loop. Keywords: animation, humanoid, locomotion, loop, retargeting, sprint. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

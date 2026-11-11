@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Climb Idle loop. Keywords: animation, climb, humanoid, idle, locomotion, loop, parkour, retargeting. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

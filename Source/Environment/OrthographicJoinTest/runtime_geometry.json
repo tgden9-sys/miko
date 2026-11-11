@@ -1,0 +1,22 @@
+{
+  "concrete": {
+    "triangles": 15804,
+    "objects_combined": 316,
+    "materials": 10
+  },
+  "bridge": {
+    "triangles": 9388,
+    "objects_combined": 65,
+    "materials": 4
+  },
+  "connector": {
+    "triangles": 4376,
+    "objects_combined": 30,
+    "materials": 8
+  },
+  "concrete_clean": {
+    "triangles": 10336,
+    "objects_combined": 281,
+    "materials": 9
+  }
+}

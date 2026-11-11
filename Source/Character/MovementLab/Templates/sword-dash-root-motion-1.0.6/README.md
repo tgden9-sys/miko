@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library 2 Source CC0 humanoid animation: Sword Dash root motion. Keywords: animation, combat, dash, humanoid, motion, retargeting, root, root motion, sword, weapon. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary2.html

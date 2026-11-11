@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIKO Asset Catalogue</title>
+<style>
+  :root{color-scheme:dark;--bg:#141817;--card:#202523;--line:#39433d;--text:#edf0e9;--muted:#b2bdb4;--amber:#efbc69}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif}main{max-width:1450px;margin:auto;padding:clamp(18px,4vw,62px)}
+  header{border-bottom:1px solid var(--line);padding:0 0 26px;margin-bottom:24px}.eyebrow,.id{color:var(--amber);font:600 12px/1.5 ui-monospace,monospace;letter-spacing:.06em}
+  h1{font-size:clamp(32px,5vw,64px);letter-spacing:-.05em;line-height:1.05;margin:12px 0}p{margin:0;color:var(--muted)}h2{font-size:19px;line-height:1.25;margin:8px 0;overflow-wrap:anywhere}
+  button,input,select{font:inherit;color:inherit;border:1px solid var(--line);background:var(--card);border-radius:7px;padding:9px 12px}button{cursor:pointer}button[aria-pressed=true]{border-color:var(--amber);color:var(--amber)}
+  button:hover,a:hover{color:var(--amber)}button:disabled{opacity:.4;cursor:default}:focus-visible{outline:2px solid var(--amber);outline-offset:3px}a{color:var(--text)}.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}.tools input{flex:1;min-width:min(220px,100%)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:15px;margin:15px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0;display:flex;flex-direction:column}
+  .picture{display:grid;place-items:center;width:100%;height:174px;border:0;border-radius:0;background:radial-gradient(ellipse at center,#39453d,#202723 80%);padding:10px;color:var(--muted)}.picture img{width:100%;height:100%;object-fit:contain;min-height:0}
+  .info{padding:13px;flex:1}.info p{font-size:14px}.meta{font-size:12px;color:var(--muted)}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:13px;align-items:center}.actions button{font-size:13px;padding:4px 8px}
+  dialog{width:min(760px,calc(100% - 30px));max-height:90vh;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:20px}dialog::backdrop{background:#000a}.detail-image{width:100%;max-height:52vh;object-fit:contain;background:#171e19;border-radius:8px;margin:12px 0}.path{overflow-wrap:anywhere}.close{float:right}.pager{justify-content:center}.notice{min-height:24px}
+  [hidden]{display:none!important}
+</style>
+<main>
+  <header>
+    <div class="eyebrow">MIKO / PRODUCTION LIBRARY</div>
+    <h1>Asset catalogue</h1>
+    <p>Find a piece, inspect its preview, and copy its ID for a level plan.</p>
+  </header>
+  <nav class="tools" aria-label="Catalogue view">
+    <button id="kit" aria-pressed="true">Level-building kit</button>
+    <button id="all" aria-pressed="false">Full inventory</button>
+  </nav>
+  <div class="tools">
+    <input id="search" type="search" aria-label="Search assets" placeholder="Search by ID, name, use or path">
+    <select id="category" aria-label="Asset type"><option value="">All types</option></select>
+    <select id="collection" aria-label="Collection"><option value="">All collections</option></select>
+  </div>
+  <p id="count" aria-live="polite"></p>
+  <div class="grid" id="grid"></div>
+  <nav class="tools pager" aria-label="Results pages">
+    <button id="previous">Previous</button><span id="page"></span><button id="next">Next</button>
+  </nav>
+  <p id="notice" class="notice" role="status"></p>
+  <footer><p>Game, Source, Concepts, AnimationTemplates and Previews. Archive and engine caches are excluded. Model thumbnails show the underlying asset, so its in-game finish can differ.</p></footer>
+</main>
+<dialog id="detail" aria-labelledby="detail-name">
+  <form method="dialog"><button class="close" aria-label="Close preview">Close</button></form>
+  <div id="detail-content"></div>
+</dialog>
+<script src="assets.js"></script>
+<script>
+  const get = id => document.getElementById(id);
+  const make = (tag, content, className) => {
+    const element = document.createElement(tag);
+    if (content) element.textContent = content;
+    if (className) element.className = className;
+    return element;
+  };
+  let kit = true;
+  let page = 0;
+  const pageSize = 36;
+  for (const key of ['category','collection']) {
+    for (const value of [...new Set(ASSETS.map(asset => asset[key]))].sort()) {
+      get(key).add(new Option(value,value));
+    }
+  }
+  async function copyId(asset) {
+    try {
+      await navigator.clipboard.writeText(asset.id);
+      get('notice').textContent = 'Copied ' + asset.id;
+    } catch {
+      window.prompt('Copy this asset ID', asset.id);
+    }
+  }
+  function actions(asset) {
+    const row = make('div', '', 'actions');
+    const copy = make('button','Copy ID');
+    copy.onclick = () => copyId(asset);
+    const source = make('a','Open file');
+    source.href = asset.url;
+    source.target = '_blank';
+    source.rel = 'noopener';
+    row.append(copy,source);
+    return row;
+  }
+  function preview(asset, className) {
+    const image = make('img', '', className);
+    image.alt = asset.name;
+    image.src = asset.image;
+    image.loading = 'lazy';
+    return image;
+  }
+  function openAsset(asset) {
+    const body = get('detail-content');
+    const title = make('h2',asset.name);
+    title.id = 'detail-name';
+    body.replaceChildren(make('div',asset.id,'id'),title,make('p',asset.category+' · '+asset.collection));
+    if (asset.image) body.append(preview(asset,'detail-image'));
+    if (asset.category === 'Audio') {
+      const audio = make('audio');
+      audio.controls = true;
+      audio.preload = 'none';
+      audio.src = asset.url;
+      body.append(audio);
+    }
+    if (asset.note) body.append(make('p',asset.note));
+    body.append(make('p',asset.path,'path meta'),actions(asset));
+    if (!get('detail').open) get('detail').showModal();
+  }
+  function show(asset) {
+    history.replaceState(null,'','#'+asset.id);
+    openAsset(asset);
+  }
+  function render() {
+    const terms = get('search').value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const items = ASSETS.filter(asset =>
+      (!kit || terms.length > 0 || asset.featured) &&
+      (!get('category').value || asset.category === get('category').value) &&
+      (!get('collection').value || asset.collection === get('collection').value) &&
+      terms.every(term => [asset.id,asset.name,asset.note,asset.path].join(' ').toLowerCase().includes(term))
+    );
+    const pages = Math.max(1,Math.ceil(items.length/pageSize));
+    page = Math.min(page,pages-1);
+    get('count').textContent = items.length ? items.length.toLocaleString()+' assets' : 'No matching assets. Try a different search or filter.';
+    get('page').textContent = 'Page '+(page+1)+' of '+pages;
+    get('previous').disabled = page === 0;
+    get('next').disabled = page+1 >= pages;
+    get('grid').replaceChildren(...items.slice(page*pageSize,(page+1)*pageSize).map(asset => {
+      const card = make('article','','card');
+      const picture = make('button',asset.image ? '' : asset.category,'picture');
+      picture.setAttribute('aria-label','Inspect '+asset.name);
+      picture.onclick = () => show(asset);
+      if (asset.image) picture.append(preview(asset));
+      const info = make('div','','info');
+      info.append(make('div',asset.id,'id'),make('h2',asset.name),make('div',asset.category+' · '+asset.collection,'meta'));
+      if (asset.note) info.append(make('p',asset.note));
+      info.append(actions(asset));
+      card.append(picture,info);
+      return card;
+    }));
+  }
+  function view(featured) {
+    kit = featured;
+    get('kit').setAttribute('aria-pressed',String(kit));
+    get('all').setAttribute('aria-pressed',String(!kit));
+    page = 0;
+    render();
+  }
+  get('kit').onclick = () => view(true);
+  get('all').onclick = () => view(false);
+  get('search').oninput = get('category').onchange = get('collection').onchange = () => {page=0;render();};
+  get('previous').onclick = () => {page--;render();get('count').scrollIntoView();};
+  get('next').onclick = () => {page++;render();get('count').scrollIntoView();};
+  get('detail').onclose = () => {
+    get('detail-content').replaceChildren();
+    history.replaceState(null,'',location.pathname+location.search);
+  };
+  render();
+  const selected = ASSETS.find(asset => '#'+asset.id === location.hash);
+  if (selected) openAsset(selected);
+</script>
+</html>

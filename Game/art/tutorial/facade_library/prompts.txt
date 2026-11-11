@@ -1,0 +1,35 @@
+Production high quality 2D foundation facade for a fixed-camera anime mecha/cyberpunk game. Use the attached approved facade as the EXACT quality, palette, material and painted finish benchmark. One standalone wide 3:1 image, highest available resolution, filled edge to edge with the front wall. ABSOLUTE STRAIGHT-ON ORTHOGRAPHIC ELEVATION: no visible top surfaces, no pavement, no railing, no receding lines, no skyline, no characters, no UI, no text, no perspective vanishing point. No rectangular outer frame or black backdrop, wall extends beyond all crop edges. Exquisite richly detailed hand-painted chipped blue-grey concrete, restrained rust, realistic flanges and clamps, subtle runoff, tasteful localized moss/ivy, nearly dark blue-hour ambient with warm amber practical lighting where specified. Crisp sophisticated fine detail, no blur or grain overlay. Shared horizontal masonry courses near 15% and 80% image height; preserve coherent construction family. Important details in upper-middle so readable above game HUD. Outer 8% at both sides must be quiet matching concrete EXCEPT specified pipe sockets: pipe endpoints must reach the exact image edge horizontally, no bends near edge. UPPER socket centre at exactly 32% down image, LOWER at exactly 66% down image; pipe outside diameter approximately 10% of image height. These connect behind real structural piers to adjacent artworks. Do not invent additional edge pipes. Respect exactly specified pipe identities and endpoints. Central routes can be irregular and interesting but must be physically plausible. Mix quiet and rich areas rather than repeating the reference composition or copying its valve/cabinet into every image.
+
+01_quiet_start
+Quiet opening wall: mostly beautifully weathered concrete, subtle moss and one small low amber fixture. A single blue-grey utility pipe emerges from a neat wall penetration in the right third, turns to horizontal and exits RIGHT edge at UPPER socket, y=32%. No pipe at left edge. Leave generous quiet concrete, no central busy service bay.
+
+02_descending_run
+Blue-grey steel main enters LEFT at UPPER socket y=32%, travels across upper-left, descends through a smooth broad pair of right-angle bends within the central area, exits RIGHT at LOWER socket y=66%. Add believable flanges, fixing brackets, one small weathered isolator box and one amber maintenance lamp, localized ivy. This is a directional descending route, not a loop.
+
+03_quiet_lower
+Quiet low pipe corridor: blue-grey main enters LEFT and exits RIGHT at LOWER sockets y=66%, straight and level with occasional flanges and clamps. Upper two thirds mostly beautiful large aged concrete slabs, fine cracks, subtle water stains and sparse moss. A small drain grille and restrained old mounting marks only; no valve wheel, no electrical cabinet, no bright central lamp. Restful composition, less is more.
+
+04_rising_service
+Blue-grey main enters LEFT at LOWER y=66%, curves upward through a recessed service area and exits RIGHT at UPPER y=32%. Include a finely detailed valve wheel and small local copper conduits linking a battered service box, logical occlusion where these pass over or behind the blue main. One or two amber protected work lights illuminate the central fittings. Strong authored detail, no looping repeated pipeline.
+
+05_bridge_termination
+Bridge approach termination: blue-grey main enters LEFT at UPPER y=32%, continues into the left-middle then bends into a wall-mounted isolation manifold and disappears into a properly flanged wall penetration. No pipe exits right edge. Right half is quieter heavily weathered concrete with sparse creepers and a faded vent cover. One warm lamp near the manifold. Clearly end the run before an open bridge, no pipe stub arbitrarily cut at the right edge.
+
+06_twin_origin
+New twin-run origin after the bridge. No pipes enter left edge. In central-left a beautifully recessed compact pump/service bank and two flanged wall penetrations feed separate blue-grey steel and aged copper/brown pipes. They turn right and exit RIGHT at UPPER y=32% (blue) and LOWER y=66% (copper). Make sources and routes physically understandable, detailed valves, bolts and restrained warm lights. Quiet concrete at far left.
+
+07_interwoven_crossing
+A convincing one-time pipe crossing. LEFT ports: blue-grey steel UPPER y=32%, aged copper LOWER y=66%. RIGHT ports: copper UPPER y=32%, blue-grey steel LOWER y=66%. Route the two through broad curved rises/descents and a single clear overlapping crossover in the central area, with one visibly behind the other and excellent occlusion. Preserve blue/copper identities, do not fuse them. Clamps and flanges, ivy in select cracks, subtle amber work light. No closed loop or repeating wave pattern.
+
+08_manifold_split
+LEFT ports copper UPPER y=32%, blue-grey LOWER y=66%. Copper continues to RIGHT UPPER y=32%, with gentle routing around a small upper service niche. Blue lower run terminates logically in a detailed flanged pressure/control manifold and disappears into the wall. A tiny cool status indicator, one amber lamp and restrained ivy. No lower pipe exits right. Clear readable routing rather than maximum clutter.
+
+09_quiet_terminal
+Quiet final wall. Aged copper pipe enters LEFT UPPER y=32%, travels only into the left-central third then turns into a bolted wall penetration with a small shutoff. No right pipe exits. Most of the wall is peaceful blue-grey concrete with exquisite fine chipped edges, restrained cracks, old runoff, a small worn vent and sparse delicate ivy. One subtle amber lamp near the pipe termination. No big valve wheel or busy cabinet, no large mound of foliage.
+
+10_plain_relief
+Spare quiet wall with no pipes at either edge and no major service equipment. Beautiful substantial aged blue-grey concrete slabs with careful chipped edges, natural water stains, subtle mineral deposits, one disused small vent, sparse moss in cracks, a few tiny fixing holes. Predominantly open concrete, fine material detail and exquisite painting. No bright central lamp, valve wheel or cabinet. A calm architectural breathing space, not a blank flat fill.
+
+Built-in image generation. Shared style reference: Game/art/tutorial/ortho_materials/painted_foundation_front.png. Each design generated separately, full straight-on front only, no pavement or railings. Pipe socket targets in generation brief were 32% and 66%; actual paintings are normalized in the game material to 36% and 66% after measuring endpoint positions, preserving the top/bottom masonry courses. Runtime uses one unique front per concrete section and one plain spare in the library.
+
+09 targeted edit: recolour only the incoming main to aged unpainted copper/brown with restrained patina/verdigris, preserving all geometry, framing, concrete, vegetation and lighting. This corrected the initially blue-coated generated pipe to match the preceding copper run.

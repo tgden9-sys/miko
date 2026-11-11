@@ -1,0 +1,266 @@
+{
+  "idle": {
+    "file": "robot_idle_sheet.png",
+    "frames": 24,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 12.0,
+    "loop": true
+  },
+  "move": {
+    "file": "robot_move_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 12.0,
+    "loop": true
+  },
+  "jump": {
+    "file": "robot_jump_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 12.0,
+    "loop": false
+  },
+  "dash": {
+    "file": "robot_dash_sheet.png",
+    "frames": 8,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 30.0,
+    "loop": false
+  },
+  "move_start": {
+    "file": "robot_move_start_sheet.png",
+    "frames": 10,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 36.0,
+    "loop": false
+  },
+  "move_stop": {
+    "file": "robot_move_stop_sheet.png",
+    "frames": 10,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 36.0,
+    "loop": false
+  },
+  "land": {
+    "file": "robot_land_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 36.0,
+    "loop": false
+  },
+  "aim_left_arm": {
+    "file": "robot_aim_left_arm_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 30.0,
+    "loop": false
+  },
+  "aim_right_arm": {
+    "file": "robot_aim_right_arm_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 30.0,
+    "loop": false
+  },
+  "idle_left": {
+    "file": "robot_idle_left_sheet.png",
+    "frames": 24,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 12.0,
+    "loop": true
+  },
+  "move_left": {
+    "file": "robot_move_left_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 12.0,
+    "loop": true
+  },
+  "jump_left": {
+    "file": "robot_jump_left_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 12.0,
+    "loop": false
+  },
+  "dash_left": {
+    "file": "robot_dash_left_sheet.png",
+    "frames": 8,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 30.0,
+    "loop": false
+  },
+  "move_start_left": {
+    "file": "robot_move_start_left_sheet.png",
+    "frames": 10,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 36.0,
+    "loop": false
+  },
+  "move_stop_left": {
+    "file": "robot_move_stop_left_sheet.png",
+    "frames": 10,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 36.0,
+    "loop": false
+  },
+  "land_left": {
+    "file": "robot_land_left_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 36.0,
+    "loop": false
+  },
+  "aim_left_arm_left": {
+    "file": "robot_aim_left_arm_left_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 30.0,
+    "loop": false
+  },
+  "aim_right_arm_left": {
+    "file": "robot_aim_right_arm_left_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 30.0,
+    "loop": false
+  },
+  "turn_to_left": {
+    "file": "robot_turn_to_left_sheet.png",
+    "frames": 25,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 96.0,
+    "loop": false
+  },
+  "turn_to_right": {
+    "file": "robot_turn_to_right_sheet.png",
+    "frames": 25,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 96.0,
+    "loop": false
+  },
+  "ladder_mount_right": {
+    "file": "robot_ladder_mount_right_sheet.png",
+    "frames": 10,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 16.0,
+    "loop": false
+  },
+  "ladder_mount_left": {
+    "file": "robot_ladder_mount_left_sheet.png",
+    "frames": 10,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 16.0,
+    "loop": false
+  },
+  "ladder_idle": {
+    "file": "robot_ladder_idle_sheet.png",
+    "frames": 8,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 8.0,
+    "loop": true
+  },
+  "ladder_climb": {
+    "file": "robot_ladder_climb_sheet.png",
+    "frames": 12,
+    "columns": 8,
+    "cell": [
+      384,
+      384
+    ],
+    "fps": 14.0,
+    "loop": true
+  }
+}

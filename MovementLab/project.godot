@@ -1,0 +1,20 @@
+config_version=5
+
+[application]
+config/name="MIKO — Movement Lab"
+run/main_scene="res://lab.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=1
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.06, 0.075, 0.095, 1)
+

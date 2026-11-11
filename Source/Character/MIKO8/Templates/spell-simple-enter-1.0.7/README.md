@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Spell Simple Enter. Keywords: animation, combat, enter, humanoid, retargeting, simple, spell. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

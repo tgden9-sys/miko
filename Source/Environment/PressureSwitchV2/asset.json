@@ -1,0 +1,14 @@
+{
+  "triangles": 1745,
+  "bytes": 127188,
+  "base_size": [
+    2.4,
+    2.0
+  ],
+  "panel_size": [
+    1.7,
+    1.28
+  ],
+  "panel_top": 0.075,
+  "travel": 0.02
+}

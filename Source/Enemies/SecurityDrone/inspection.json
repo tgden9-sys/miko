@@ -1,0 +1,27 @@
+[
+  {
+    "name": "world",
+    "type": "EMPTY",
+    "parent": null
+  },
+  {
+    "name": "geometry_0",
+    "type": "MESH",
+    "parent": "world",
+    "vertices": 852261,
+    "polygons": 966544,
+    "bounds_min": [
+      -0.5007086992263794,
+      -0.28010034561157227,
+      -0.37724578380584717
+    ],
+    "bounds_max": [
+      0.5008130073547363,
+      0.28015339374542236,
+      0.37619102001190186
+    ],
+    "materials": [
+      "Material_0"
+    ]
+  }
+]

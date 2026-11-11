@@ -1,0 +1,14 @@
+19:00:38 | INFO: Data are loaded, start creating Blender stuff
+19:00:38 | INFO: Blender create Mesh node geometry_0
+19:00:40 | INFO: glTF import finished in 2.36s
+00:27.110  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\front_neg_y.png'
+00:29.157  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\back_pos_y.png'
+00:31.047  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\side_pos_x.png'
+00:32.860  render           | Saved: 'C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\side_neg_x.png'
+RENDERED C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\front_neg_y.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\back_pos_y.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\side_pos_x.png
+RENDERED C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\side_neg_x.png
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

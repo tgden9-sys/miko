@@ -1,0 +1,34 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/magnetic_anchor.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/magnetic_anchor_lines.gd" id="2"]
+[ext_resource type="Texture2D" path="res://sprites/fixtures/magnetic_anchors/ceiling_neutral.png" id="3"]
+[ext_resource type="Texture2D" path="res://environment/light_gradient.png" id="4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ceiling"]
+size = Vector2(112, 25)
+
+[node name="MagneticCeilingAnchor" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1")
+mount = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 12)
+texture = ExtResource("3")
+scale = Vector2(0.07, 0.075)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_ceiling")
+
+[node name="ChargeLines" type="Node2D" parent="."]
+z_index = 1
+script = ExtResource("2")
+
+[node name="ChargeLight" type="PointLight2D" parent="."]
+enabled = false
+position = Vector2(0, 17)
+energy = 0.6
+texture = ExtResource("4")
+texture_scale = 0.6

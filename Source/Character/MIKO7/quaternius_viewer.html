@@ -1,0 +1,383 @@
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+  	<link rel="stylesheet" href="/assets/css/thumbnails.css">
+  	<link rel="stylesheet" href="/assets/css/style_new.css">
+    <link rel="shortcut icon" href="/assets/images/site/favicon.ico" />
+    <link rel="stylesheet" href="/assets/css/lightbox.min.css">
+    <link rel="stylesheet" href="/assets/css/lity.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://kit.fontawesome.com/f9d695b775.js" crossorigin="anonymous"></script>
+<script type="text/javascript">
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-99971748-1', 'auto');
+  ga('send', 'pageview');
+
+
+
+ $(document).ready(function(){
+ $('#search').keyup(function(){
+
+  // Search text
+  var text = $(this).val();
+
+  // Hide all content class element
+  $('.pack').hide();
+
+  // Search
+  $('.pack:contains("'+text+'")').closest('.pack').show();
+
+ //If the search bar gets emptied, show all packs
+ if(text == ''){
+       $('.pack').show();
+ }
+ });
+});
+
+//Case insensitive
+$.expr[":"].contains = $.expr.createPseudo(function(arg) {
+  return function( elem ) {
+   return $(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+  };
+});
+
+function responsiveHamburger() {
+	var x = document.getElementById("navButtons-id");
+	if (x.className === "navButtons") {
+		x.className += " responsive";
+	} else {
+		x.className = "navButtons";
+	}
+}
+
+function setValue(tag) {
+
+			var text = document.getElementById("search").value;
+		$('.pack').hide();
+		$('.pack:contains("'+tag+'")').closest('.pack').show();
+
+	}
+
+	function showAll(){
+		 $('.pack').show();
+	}
+	function openTutorial(number) {
+		console.log(number);
+  var x = document.getElementById(number);
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+
+	</script>
+
+  <div class="container">
+
+      <header>
+			<button class="btnHamb hamburger" id="hamburger" onclick="responsiveHamburger()"> <img src="/assets/svg/bars.svg" class="iconBig"></button>
+     	<div class="nav-menu">
+						<div class="navButtons" id ="navButtons-id">
+               <button class="btn btnNavBar"   onClick="window.location='/index.html'"; ><div class="navicon"><img src="/assets/svg/rook.svg" class="iconBig"></div> Assets</button>
+							 <button class="btn btnNavBar"   onClick="window.location='/tutorials.html'"; ><div class="navicon"><img src="/assets/svg/book.svg" class="iconBig"></div> Tutorials</button>
+							 <button class="btn btnNavBar"   onClick="window.location='/faq.html'"; ><div class="navicon"><img src="/assets/svg/question.svg" class="iconBig"></div> FAQ</button>
+						  <button class="btn btnNavBar"  onclick=" window.open('https://www.artstation.com/quaternius','_blank')"; ><div class="navicon"><img src="/assets/svg/frog.svg" class="iconBig"></div> Portfolio</button>
+
+
+							 </div>
+<div class="socials">
+	<button class="btn licensebtn"  style="padding-top:7px;"onClick="window.location='/license.html'"; ><div class="navicon"><img src="/assets/svg/book.svg" class="iconBig"></div> License</button>
+<button class="btn twitter"  onclick=" window.open('https://discord.gg/hXB2qTTEnJ','_blank')" ><div class="joinDiscord"><img src="/assets/svg/discord.svg" class="iconBig"> Join on Discord</div></button>
+
+				<button class="btn twitter"  onclick=" window.open('https://twitter.com/quaternius','_blank')" ><img src="/assets/svg/square-twitter.svg" class="iconBig"></button>
+
+
+			</div></div>
+
+            <a href="/index.html"><img src ="/assets/images/site/logo.png" class ="logo"/></a>
+</header>
+
+      <div id="patreonBanner">
+    <nav class="menu-text-center">
+        <a href="https://www.patreon.com/quaternius" style="text-decoration:none" target=blank><img src="/assets/images/site/PatreonBanner.png" /></a>
+
+    </nav>
+</div>
+
+
+  </div>
+</head>
+
+<body>
+  <div class="container">
+
+
+
+      <title>Quaternius • Portfolio</title>
+<head>
+	<meta name="title" content="Quaternius • Free Game Assets"/>
+<meta name="description" content="A library of hundreds of free Low Poly 3D Models, using the CC0 License."/>
+
+<meta name="twitter:image" content="/assets/images/fullres/metadata.jpg">
+<meta name="twitter:card" value="summary_large_image">
+<meta property="twitter:title" content="Quaternius • Free Game Assets"/>
+<meta property="twitter:description" content="A library of hundreds of free Low Poly 3D Models, using the CC0 License."/>
+<meta property="twitter:site" content="@Quaternius">
+
+
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://quaternius.com">
+<meta property="og:site-name" content="Quaternius">
+<meta property="og:title" content="Quaternius • Free Game Assets">
+<meta property="og:description" content="A library of hundreds of free Low Poly 3D Models, using the CC0 License.">
+<meta property="og:image" content="/assets/images/fullres/metadata.jpg">
+<meta property="og:image:url" content="/assets/images/fullres/metadata.jpg">
+
+</head>
+<style>
+html, body, #canvas {
+margin: 0;
+padding: 0;
+border: 0;
+}
+
+body {
+color: white;
+
+/* Remove overflow: hidden to allow normal page scrolling */
+touch-action: none;
+}
+
+/* Make the portfolio container define the game size */
+.portfolioText {
+	width: 100%;
+	height: auto; /* Set desired height - adjust as needed */
+	position: relative;
+	overflow: hidden;
+	background-color: black;
+}
+
+#canvas {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+#canvas:focus {
+outline: none;
+}
+
+#status, #status-splash, #status-progress {
+position: absolute;
+left: 0;
+right: 0;
+}
+
+#status, #status-splash {
+top: 0;
+bottom: 0;
+}
+
+#status {
+background-color: #7b78bf;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+visibility: hidden;
+}
+
+#status-splash {
+max-height: 100%;
+max-width: 100%;
+margin: auto;
+}
+
+#status-splash.show-image--false {
+display: none;
+}
+
+#status-splash.fullsize--true {
+height: 100%;
+width: 100%;
+object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+display: none;
+}
+
+#status-progress {
+bottom: 10%;
+width: 50%;
+margin: 0 auto;
+}
+
+#status-notice {
+background-color: #5b3943;
+border-radius: 0.5rem;
+border: 1px solid #9b3943;
+color: #e0e0e0;
+font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+line-height: 1.3;
+margin: 0 2rem;
+overflow: hidden;
+padding: 1rem;
+text-align: center;
+z-index: 1;
+}
+
+</style>
+
+<div class="portfolioText" style="background-color:#dbdbdb">
+	<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+	<canvas id="canvas">
+		Your browser does not support the canvas tag.
+	</canvas>
+
+	<noscript>
+		Your browser does not support JavaScript.
+	</noscript>
+
+	<div id="status">
+		<img id="status-splash" class="show-image--true fullsize--false use-filter--true" src="index.png" alt="">
+		<progress id="status-progress"></progress>
+		<div id="status-notice"></div>
+	</div>
+
+	<script src="index.js"></script>
+	<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":1,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":8559696,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+const statusOverlay = document.getElementById('status');
+const statusProgress = document.getElementById('status-progress');
+const statusNotice = document.getElementById('status-notice');
+
+let initializing = true;
+let statusMode = '';
+
+function setStatusMode(mode) {
+	if (statusMode === mode || !initializing) {
+		return;
+	}
+	if (mode === 'hidden') {
+		statusOverlay.remove();
+		initializing = false;
+		return;
+	}
+	statusOverlay.style.visibility = 'visible';
+	statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+	statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+	statusMode = mode;
+}
+
+function setStatusNotice(text) {
+	while (statusNotice.lastChild) {
+		statusNotice.removeChild(statusNotice.lastChild);
+	}
+	const lines = text.split('\n');
+	lines.forEach((line) => {
+		statusNotice.appendChild(document.createTextNode(line));
+		statusNotice.appendChild(document.createElement('br'));
+	});
+}
+
+function displayFailureNotice(err) {
+	console.error(err);
+	if (err instanceof Error) {
+		setStatusNotice(err.message);
+	} else if (typeof err === 'string') {
+		setStatusNotice(err);
+	} else {
+		setStatusNotice('An unknown error occurred.');
+	}
+	setStatusMode('notice');
+	initializing = false;
+}
+
+const missing = Engine.getMissingFeatures({
+	threads: GODOT_THREADS_ENABLED,
+});
+
+if (missing.length !== 0) {
+	if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+		let serviceWorkerRegistrationPromise;
+		try {
+			serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+		} catch (err) {
+			serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+		}
+		// There's a chance that installing the service worker would fix the issue
+		Promise.race([
+			serviceWorkerRegistrationPromise.then((registration) => {
+				if (registration != null) {
+					return Promise.reject(new Error('Service worker already exists.'));
+				}
+				return registration;
+			}).then(() => engine.installServiceWorker()),
+			// For some reason, `getRegistration()` can stall
+			new Promise((resolve) => {
+				setTimeout(() => resolve(), 2000);
+			}),
+		]).then(() => {
+			// Reload if there was no error.
+			window.location.reload();
+		}).catch((err) => {
+			console.error('Error while registering service worker:', err);
+		});
+	} else {
+		// Display the message as usual
+		const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+		displayFailureNotice(missingMsg + missing.join('\n'));
+	}
+} else {
+	setStatusMode('progress');
+	engine.startGame({
+		'onProgress': function (current, total) {
+			if (current > 0 && total > 0) {
+				statusProgress.value = current;
+				statusProgress.max = total;
+			} else {
+				statusProgress.removeAttribute('value');
+				statusProgress.removeAttribute('max');
+			}
+		},
+	}).then(() => {
+		setStatusMode('hidden');
+	}, displayFailureNotice);
+}
+}());
+	</script>
+
+</div>
+
+      <footer>
+        <a class="float-left" target="_blank" href="https://www.twitter.com/quaternius">	&copy; Quaternius</a>
+        <a class="float-right" >laulhet@gmail.com</a>
+	</footer>
+
+  </div>
+</body>
+</html>

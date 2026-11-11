@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Spell Double Shoot loop. Keywords: animation, combat, double, humanoid, loop, retargeting, shoot, shooting, spell. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

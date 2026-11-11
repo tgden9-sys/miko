@@ -1,0 +1,2 @@
+C:\Users\tgden\Desktop\MIKO\Source\Enemies\SecurityDrone\rig_and_render.py:133: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True

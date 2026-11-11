@@ -1,0 +1,7 @@
+{
+  "fragments": 12,
+  "triangles": 21482,
+  "size_m": 0.8,
+  "source": "wooden_crate.glb",
+  "method": "clipped original UV-mapped mesh, capped wood interiors"
+}

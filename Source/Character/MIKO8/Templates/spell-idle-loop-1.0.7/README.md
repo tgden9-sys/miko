@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Spell Simple Idle loop. Keywords: animation, combat, humanoid, idle, loop, retargeting, simple, spell. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

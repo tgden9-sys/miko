@@ -1,0 +1,13 @@
+# Gate warden sword encounter — 8 November 2026
+
+Launch `Play Level 4.cmd`. Miko now uses the supplied sword-light A/B/C, sword idle, shield idle, shield hit and shield break templates. The converted upper-body poses overlay existing locomotion so running and jumping remain responsive. Source conversion: `Source/Character/MIKO8/build_combat_library.py`; runtime samples: `Game/models/miko8/MIKO8_Combat.json`.
+
+L2/G attacks; holding chains three strikes (45 + 45 + 60 damage), enough to defeat a 150 HP gate warden. Each swing damages each target once, checks solid cover, and covers a generous forward area. It can break wooden crates. The blade ignites automatically, then retracts after combat. R2/F immediately cancels an attack into a directional shield. It blocks incoming frontal bolts, costs 24 energy per hit plus 9 per second held, and recharges at 26 per second when released. Depletion breaks guard for 1.1 seconds. Rear shots remain dangerous. R3/P retains plasma for discharge puzzles.
+
+The encounter loop is block or evade the committed two-shot burst, approach during recovery, then land the combo. Wardens backstep at most 0.6 m per response, with a 3.2 second cooldown, only before committing their burst. Retreat respects roof edges, walls and patrol limits. Landed sword strikes interrupt firing and stagger briefly. Physical contact never applies combat knockback: Miko now collides with enemy layer 4, eliminating the one-sided collision recovery that previously shoved wardens backwards.
+
+Health, gate unlocking, checkpoint defeat tracking and respawn use the existing encounter flow. New in-world instructions and a shield percentage display explain the controls.
+
+Validation: `Game/scripts/verify_miko8_sword_combat.gd` passes 15 checks covering contact blocking without displacement, a live projectile hitting guard, shield direction/exhaustion/recovery, combo damage and gate unlock, jump attacks, no green projectile output, reset, cover obstruction and remapped plasma. Log: `Builds/combat_test.log`. Render review: `Game/scripts/review_miko8_sword_combat.gd`, screenshots in `Builds/combat_sword_review.png` and `Builds/combat_shield_review.png`. Source retargeting matrix errors are below 0.000003 in `Builds/Validation/MIKO8/reactions/combat_conversion.json`.
+
+This is the first playable combat tuning pass. Automated checks establish behavior; controller playtesting is still needed to judge attack cadence, range and shield balance. The new tactical retreat/stagger tuning applies to Level 4 encounter wardens; other enemy types retain their existing AI and accept sword damage through their existing damage interfaces.

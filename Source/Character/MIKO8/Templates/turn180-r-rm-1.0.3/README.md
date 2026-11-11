@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library 2 Source CC0 humanoid animation: Turn180 R root motion. Keywords: animation, humanoid, motion, r, retargeting, right, root, root motion, turn180, turn180 right. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary2.html

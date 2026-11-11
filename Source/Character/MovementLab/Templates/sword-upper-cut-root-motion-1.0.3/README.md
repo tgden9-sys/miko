@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library 2 Source CC0 humanoid animation: Sword Upper Cut root motion. Keywords: animation, combat, cut, humanoid, motion, retargeting, root, root motion, sword, upper, weapon. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary2.html

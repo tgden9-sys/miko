@@ -1,0 +1,63 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/miko8_side_on_mockup.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/miko8_encounter_warden.gd" id="2"]
+[node name="FreightSecurity" type="Node3D"]
+script = ExtResource("1")
+level_index = 4
+game_lod_path = "res://models/miko8/MIKO8_FastLOD.glb"
+
+[node name="GateWarden" type="CharacterBody3D" parent="."]
+position = Vector3(18.5, 0, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 14.5
+patrol_right = 21
+
+[node name="SwitchWarden" type="CharacterBody3D" parent="."]
+position = Vector3(41, 3.6, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 38
+patrol_right = 44
+
+[node name="LoadingWarden" type="CharacterBody3D" parent="."]
+position = Vector3(51, 0, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 47
+patrol_right = 54
+
+[node name="FreightWarden" type="CharacterBody3D" parent="."]
+position = Vector3(83.5, 3.6, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 80.5
+patrol_right = 86
+
+[node name="IntakeWarden" type="CharacterBody3D" parent="."]
+position = Vector3(110, 0, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 106
+patrol_right = 115
+
+[node name="DispatchWarden" type="CharacterBody3D" parent="."]
+position = Vector3(132, 3.8, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 129
+patrol_right = 134
+
+[node name="BridgeWarden" type="CharacterBody3D" parent="."]
+position = Vector3(143, 4.15, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 139
+patrol_right = 145
+
+[node name="RelayWarden" type="CharacterBody3D" parent="."]
+position = Vector3(171, 3.35, 0)
+script = ExtResource("2")
+starts_facing_left = true
+patrol_left = 168.5
+patrol_right = 172.5

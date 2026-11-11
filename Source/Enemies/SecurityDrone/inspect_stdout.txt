@@ -1,0 +1,7 @@
+18:59:24 | INFO: Data are loaded, start creating Blender stuff
+18:59:24 | INFO: Blender create Mesh node geometry_0
+18:59:26 | INFO: glTF import finished in 2.40s
+INSPECTION [{"name": "world", "type": "EMPTY", "parent": null}, {"name": "geometry_0", "type": "MESH", "parent": "world", "vertices": 852261, "polygons": 966544, "bounds_min": [-0.5007086992263794, -0.28010034561157227, -0.37724578380584717], "bounds_max": [0.5008130073547363, 0.28015339374542236, 0.37619102001190186], "materials": ["Material_0"]}]
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

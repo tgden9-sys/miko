@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library 2 Source CC0 humanoid animation: Get Off Wall 2m root motion. Keywords: 2m, animation, get, humanoid, motion, off, retargeting, root, root motion, wall. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary2.html

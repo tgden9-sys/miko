@@ -1,0 +1,1 @@
+Quaternius Universal Animation Library Pro CC0 humanoid animation: Climb Ledge root motion. Keywords: animation, climb, humanoid, ledge, locomotion, motion, parkour, retargeting, root, root motion. Single GLB clip on a normalized humanoid skeleton for retargeting. Source: https://quaternius.com/packs/universalanimationlibrary.html

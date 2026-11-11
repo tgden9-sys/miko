@@ -1,0 +1,85 @@
+extends "res://scripts/miko8_tutorial.gd"
+const PREVIEW_LENGTH:=60.0
+var bridge_channel_plane:Node3D
+func _world()->void:
+	super._world()
+	for node in get_children():
+		if node is WorldEnvironment:
+			node.environment.ambient_light_energy=0.24
+		if node is DirectionalLight3D:node.light_energy*=0.67
+
+func _ready()->void:
+	super._ready()
+	get_viewport().msaa_3d=Viewport.MSAA_2X
+	var old:=get_node("PaintedGroundKit");remove_child(old);old.queue_free()
+	var ground:=preload("res://scripts/miko8_ortho_repetition_ground.gd").new()
+	ground.clean_style=true;add_child(ground)
+	title.text="MIKO   /   AFTER THE LAST LIGHT"
+	DisplayServer.window_set_title("MIKO — Cel / Diorama lighting trial")
+	visibility_budget.refresh()
+
+func _backgrounds()->void:
+	var sky:=_plane("BG1_Dusk",0.0)
+	var sky_quad:=MeshInstance3D.new();var sq:=QuadMesh.new();sq.size=Vector2(120,40)
+	sky_quad.mesh=sq;sky_quad.position=Vector3(25,8,-35)
+	var sky_mat:=ShaderMaterial.new();sky_mat.shader=preload("res://shaders/miko_cel_sky.gdshader")
+	sky_quad.material_override=sky_mat;sky.add_child(sky_quad)
+	_city_layer("BG2_SoftCity",0.10,-25,true)
+	_city_layer("BG3_BokehCity",0.25,-17,false)
+	_main_backdrop()
+	bridge_channel_plane=_plane("BG4_BridgeChannel",0.82)
+	_channel_geometry()
+
+func _city_layer(label:String,factor:float,z:float,far:bool)->void:
+	var layer:=_plane(label,factor)
+	# Soft-focus bitmap is intentionally limited to the distant city; all nearby
+	# architecture is actual 3D. Compensate the elevated camera's depth offset.
+	var city:=_art(layer,"res://art/tutorial/cel_diorama/bokeh_city.png",Vector3(26,z*7.0/18.0+5.0,z),84.0 if far else 64.0,2.2 if far else 0.2,0.48 if far else 0.06)
+	city.rotation.x=-atan(7.0/18.0);city.flip_h=far
+	city.material_override.set_shader_parameter("mist_color",Color("263b56"))
+
+func _main_backdrop()->void:
+	var rear:=_plane("BG4_MainSubstation",0.70)
+	var bays:=preload("res://scripts/miko8_cel_substation.gd").new()
+	bays.position.y=-2.4;rear.add_child(bays)
+
+func _channel_geometry()->void:
+	# A restrained real recess replaces the conflicting painted tunnel.
+	var root:=Node3D.new();root.name="DarkServiceRecess";bridge_channel_plane.add_child(root)
+	var dark:=StandardMaterial3D.new();dark.albedo_color=Color("202e41");dark.roughness=0.9
+	var steel:=StandardMaterial3D.new();steel.albedo_color=Color("3c5263");steel.roughness=0.72
+	for data:Array in [[Vector3(33,-3.5,-4.7),Vector3(11,5.5,0.4),dark],[Vector3(28.5,-3,-2.5),Vector3(.5,5,4),dark],[Vector3(37.5,-3,-2.5),Vector3(.5,5,4),dark]]:
+		var mesh:=MeshInstance3D.new();var box:=BoxMesh.new();box.size=data[1]
+		mesh.mesh=box;mesh.position=data[0];mesh.material_override=data[2];root.add_child(mesh)
+	for x:float in [30.7,35.3]:
+		var mesh:=MeshInstance3D.new();var tube:=CylinderMesh.new();tube.top_radius=.11;tube.bottom_radius=.11;tube.height=4.5;tube.radial_segments=12
+		mesh.mesh=tube;mesh.position=Vector3(x,-3.1,-4.25);mesh.material_override=steel;root.add_child(mesh)
+		for y:float in [-1.3,-2.6,-4.1]:
+			var collar:=MeshInstance3D.new();var ring:=CylinderMesh.new();ring.top_radius=.15;ring.bottom_radius=.15;ring.height=.10;ring.radial_segments=12
+			collar.mesh=ring;collar.position=Vector3(x,y,-4.25);collar.material_override=steel;root.add_child(collar)
+
+func _foreground()->void:_plane("FG_Reserved",1.15)
+
+func _details()->void:
+	var crate:=preload("res://scripts/miko8_charge_box.gd").new()
+	crate.name="TutorialChargeCrate";crate.position=Vector3(54,0.4,0);crate.freeze=true;add_child(crate)
+
+func _camera(delta:float,immediate:=false)->void:
+	var width:=VIEW_HEIGHT*get_viewport().get_visible_rect().size.x/maxf(1,get_viewport().get_visible_rect().size.y)
+	var goal:=clampf(actor.position.x+1.5,width/2,PREVIEW_LENGTH-width/2)
+	var x:float=goal if immediate else lerpf(camera.position.x,goal,1-exp(-4.5*delta))
+	camera.position=Vector3(x,9,18);camera.look_at(Vector3(x,2,0))
+	for plane:Dictionary in parallax:plane.node.position.x=(x-width/2)*(1-plane.factor)
+	# The recess is anchored around the physical bridge, with local depth motion.
+	if bridge_channel_plane:bridge_channel_plane.position.x=(x-33.0)*0.18
+	if immediate and visibility_budget:visibility_budget.refresh()
+
+func _prompt()->void:
+	var pad:=not Input.get_connected_joypads().is_empty()
+	progress.text="CONCRETE ×5    →    BRIDGE    →    CONCRETE ×4"
+	instruction.text="After the last light." if actor.state.begins_with("GroundSit") else "Explore the repeated sections."
+	detail.text="Left stick: move · B / Circle: jump · View: reset" if pad else "A / D: move · Ctrl: walk · Shift: sprint · Space: jump · R: reset"
+
+func _physics_process(_delta:float)->void:
+	if resetting:return
+	if actor.position.y< -3:_restart(true)

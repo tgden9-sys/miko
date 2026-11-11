@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8 modular_gym_scene"]
+
+[ext_resource type="Script" path="res://scripts/miko8_modular_gym.gd" id="1_gym"]
+
+[node name="ModularPlatformGym" type="Node3D"]
+script = ExtResource("1_gym")

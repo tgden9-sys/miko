@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/crate.tscn" id="2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(2200, 92)
+
+[node name="RobotDemo" type="Node2D"]
+
+[node name="Backdrop" type="ColorRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.039, 0.06, 0.105, 1)
+mouse_filter = 2
+
+[node name="FarRuins" type="Polygon2D" parent="."]
+scale = Vector2(2, 2)
+color = Color(0.09, 0.13, 0.19, 1)
+polygon = PackedVector2Array(0, 440, 0, 260, 100, 260, 100, 318, 138, 318, 138, 205, 196, 205, 196, 330, 275, 330, 275, 244, 335, 244, 335, 370, 432, 370, 432, 220, 498, 220, 498, 322, 555, 322, 555, 272, 624, 272, 624, 345, 710, 345, 710, 226, 764, 226, 764, 322, 830, 322, 830, 265, 913, 265, 913, 440)
+
+[node name="GroundArt" type="Polygon2D" parent="."]
+color = Color(0.18, 0.25, 0.32, 1)
+polygon = PackedVector2Array(0, 878, 1920, 878, 1920, 1080, 0, 1080)
+
+[node name="GroundEdge" type="Polygon2D" parent="."]
+color = Color(0.35, 0.49, 0.56, 1)
+polygon = PackedVector2Array(0, 877, 1920, 877, 1920, 882, 0, 882)
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(960, 924)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="CrateLeftFloor" parent="." instance=ExtResource("2")]
+position = Vector2(105, 860.5)
+
+[node name="CrateLeftBase" parent="." instance=ExtResource("2")]
+position = Vector2(240, 860.5)
+
+[node name="CrateLeftTop" parent="." instance=ExtResource("2")]
+position = Vector2(240, 825.6)
+
+[node name="CrateFloor1" parent="." instance=ExtResource("2")]
+position = Vector2(780, 860.5)
+
+[node name="CrateStackTop" parent="." instance=ExtResource("2")]
+position = Vector2(780, 825.6)
+
+[node name="CrateFloor2" parent="." instance=ExtResource("2")]
+position = Vector2(1050, 860.5)
+
+[node name="CrateRightBase" parent="." instance=ExtResource("2")]
+position = Vector2(1340, 860.5)
+
+[node name="CrateRightTop" parent="." instance=ExtResource("2")]
+position = Vector2(1340, 825.6)
+
+[node name="CrateRightFloor" parent="." instance=ExtResource("2")]
+position = Vector2(1620, 860.5)
+
+[node name="Robot" parent="." instance=ExtResource("1")]
+position = Vector2(480, 785)
+
+[node name="Instructions" type="Label" parent="."]
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 1890.0
+offset_bottom = 55.0
+theme_override_font_sizes/font_size = 20
+text = "MICA   A/D MOVE or STRAFE   W JUMP   X DASH   Q/LEFT CLICK RED   E/RIGHT CLICK BLUE   UP/DOWN AIM   F PURPLE PLASMA"

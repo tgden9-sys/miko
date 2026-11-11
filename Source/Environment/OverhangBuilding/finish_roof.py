@@ -1,0 +1,11 @@
+import bpy,pathlib,tempfile
+root=pathlib.Path(r'C:/Users/tgden/Desktop/MIKO');tempfile.tempdir=str(root/'Builds/Validation/Overhang')
+bpy.ops.wm.open_mainfile(filepath=str(root/'Source/Environment/OverhangBuilding/overhang.blend'))
+old=bpy.data.objects.get('PlanarRoofCap')
+if old:bpy.data.objects.remove(old,do_unlink=True)
+mesh=bpy.data.meshes.new('PlanarRoofCap');mesh.from_pydata([(-5.6,-1.5,5.702),(3.2,-1.5,5.702),(3.2,1.5,5.702),(-5.6,1.5,5.702)],[],[(0,1,2,3)]);mesh.update()
+obj=bpy.data.objects.new('PlanarRoofCap',mesh);bpy.context.collection.objects.link(obj)
+source=next(o for o in bpy.context.scene.objects if o.type=='MESH' and o!=obj)
+if source.data.materials:obj.data.materials.append(source.data.materials[0])
+bpy.ops.wm.save_as_mainfile(filepath=str(root/'Source/Environment/OverhangBuilding/overhang.blend'))
+bpy.ops.export_scene.gltf(filepath=str(root/'Game/models/environment/overhang_building/overhang.glb'),export_format='GLB',export_image_format='AUTO')

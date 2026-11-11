@@ -1,0 +1,8 @@
+.godot/
+/Game/qa_*/
+/Archive/
+/Backups/
+/Builds/
+*.log
+*.blend1
+__pycache__/
