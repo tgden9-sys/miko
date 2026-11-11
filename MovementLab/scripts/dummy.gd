@@ -40,7 +40,7 @@ func _ready() -> void:
 		droid.scale = Vector3.ONE*1.116
 		body.add_child(droid)
 		for mesh: MeshInstance3D in droid.find_children("*", "MeshInstance3D", true, false):
-			for surface in range(mesh.get_surface_override_material_count()):
+			for surface in range(mesh.mesh.get_surface_count()):
 				var original := mesh.get_active_material(surface) as StandardMaterial3D
 				if original:
 					var material := ShaderMaterial.new()
@@ -206,3 +206,4 @@ func _spawn_damage_popup(amount: int, direction: int) -> void:
 func _refresh_label() -> void:
 	if not label: return
 	label.text = ("PARRY PRACTICE" if attacking else "TRAINING DUMMY") + "\n%d hits  ·  %d damage" % [hits, damage]
+

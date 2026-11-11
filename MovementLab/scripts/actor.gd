@@ -442,7 +442,7 @@ func _physics_process(delta: float) -> void:
 		var requested := _requested_laser() if not automation else 0
 		if state == "laser" and (requested == 0 or vertical < -.5 or _combat_buffered()):
 			_change_state("move")
-		_update_crouch(delta, grounded, vertical)
+		_update_crouch(delta, grounded, vertical, axis)
 		if state == "move" and not crouched and requested != 0 and not _combat_buffered():
 			_change_state("laser")
 		laser_pole = requested if state == "laser" else 0
@@ -1265,7 +1265,7 @@ func _set_crouched(low: bool) -> void:
 	crouch_time = 0.0
 	crouch_exit_time = -1.0 if low else 0.0
 
-func _update_crouch(delta: float, grounded: bool, vertical: float) -> void:
+func _update_crouch(delta: float, grounded: bool, vertical: float, horizontal: float) -> void:
 	var held := vertical < -.5
 	if crouched and (not held or buffers.jump > 0):
 		stand_query.transform = Transform3D(Basis.IDENTITY,global_position+Vector3.UP*(stand_shape.height*.5+.025))
@@ -1278,7 +1278,8 @@ func _update_crouch(delta: float, grounded: bool, vertical: float) -> void:
 	look_down_time = look_down_time + delta if crouched and grounded and held else 0.0
 	if crouch_exit_time >= 0.0:
 		crouch_exit_time += delta
-		if crouch_exit_time >= .39:
+		# Let the locomotion pose take over as soon as movement starts.
+		if absf(horizontal) > .15 or crouch_exit_time >= .39:
 			crouch_exit_time = -1.0
 
 func _combat_buffered() -> bool:

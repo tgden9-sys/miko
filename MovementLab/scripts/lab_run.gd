@@ -1,6 +1,6 @@
 extends "res://scripts/lab.gd"
 
-const VIEW_HEIGHT := 7.4
+const VIEW_HEIGHT := 8.9
 const CAMERA_DISTANCE := 48.0
 const CAMERA_RISE := .65
 const FRAME := Color("2b3640")
@@ -23,7 +23,7 @@ func _ready() -> void:
 	course_title = "MIKO   /   WAKE LAB"
 	course_shadows = false
 	course_polarity_controls = true
-	course_target_model = load("res://models/AgileDroid_Low.glb")
+	course_target_model = load("res://models/AgileDroid_Rigged.glb")
 	super._ready()
 	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
 	actor.sword_bulkheads = bulkhead_bounds
@@ -130,8 +130,8 @@ func reset_room() -> void:
 	if step_fx: step_fx.clear()
 	if polarity_crate: polarity_crate.reset_charge_body()
 	actor._update_sword_walls()
-	camera_focus = actor.position.x
-	camera_height = actor.position.y+2.43
+	camera_focus = actor.position.x + float(actor.facing) * 2.2
+	camera_height = actor.position.y + 2.7
 	_update_camera(1.0)
 
 func _update_camera(delta: float) -> void:
@@ -156,24 +156,25 @@ func _update_camera(delta: float) -> void:
 		elif p.y > 11.9 and p.y < 12.2 and p.x > 10 and p.x < 63: checkpoint_room = 4
 		elif p.y > 5.9 and p.y < 6.2 and p.x > 11 and p.x < 52: checkpoint_room = 2 if p.x > 30 else 3
 		elif p.y < .2 and p.x < 54: checkpoint_room = 1 if p.x > 45 else 0
-	view_height = lerpf(view_height,4.5 if zoomed else VIEW_HEIGHT,1-exp(-delta*9))
+	view_height = lerpf(view_height, 5.4 if zoomed else VIEW_HEIGHT, 1.0 - exp(-delta * 9.0))
 	camera.fov = rad_to_deg(2.0 * atan(view_height * .5 / CAMERA_DISTANCE))
 	var view := get_viewport().get_visible_rect().size
-	var half_width := view_height*view.x/maxf(1,view.y)*.5
-	var lead := clampf(actor.velocity.x*.28,-2.0,2.0)
-	var target := clampf(p.x+lead,half_width,94-half_width)
-	camera_focus = lerpf(camera_focus,target,1-exp(-delta*7))
+	var half_width := view_height * view.x / maxf(1.0, view.y) * 0.5
+	# Lead the camera forward in the direction Miko faces, opening up forward vision
+	var look_lead := float(actor.facing) * 2.2 + clampf(actor.velocity.x * 0.16, -1.2, 1.2)
+	var target := clampf(p.x + look_lead, half_width, 94.0 - half_width)
+	camera_focus = lerpf(camera_focus, target, 1.0 - exp(-delta * 5.5))
 	var floor_y := 12.0 if p.y >= 11.8 else (6.0 if p.y >= 5.8 else 0.0)
 	var in_shaft := (p.x > 52 and p.y < 6) or (p.x < 12 and p.y > 6) or (p.x > 65.6 and p.x < 78.6)
-	var target_y := p.y+2.25 if in_shaft else floor_y+2.43
-	if zoomed: target_y = p.y+1.65
+	var target_y := p.y + 2.4 if in_shaft else floor_y + 2.7
+	if zoomed: target_y = p.y + 1.8
 	if actor.look_down_time > .32:
-		target_y -= 1.35
-	camera_height = lerpf(camera_height,target_y,1-exp(-delta*5))
-	var shake := sin(Time.get_ticks_msec()*.11)*trauma*.06
+		target_y -= 1.6
+	camera_height = lerpf(camera_height, target_y, 1.0 - exp(-delta * 5.0))
+	var shake := sin(Time.get_ticks_msec() * .11) * trauma * .06
 	# The long lens keeps Miko close to the side-on scale while revealing the tops of lower ledges.
-	var focus := Vector3(camera_focus,camera_height+shake,0)
-	camera.position = focus + Vector3(0,CAMERA_RISE,CAMERA_DISTANCE)
+	var focus := Vector3(camera_focus, camera_height + shake, 0)
+	camera.position = focus + Vector3(0, CAMERA_RISE, CAMERA_DISTANCE)
 	camera.look_at(focus)
 
 func _update_status() -> void:
@@ -210,3 +211,4 @@ func _physics_process(_delta: float) -> void:
 		contact_shadow.position = surface + Vector3.UP * .024
 		contact_shadow.scale = Vector3.ONE * (1.0 + height*.18)
 		contact_shadow.material_override.set_shader_parameter("opacity",.46*maxf(0.0,1.0-height/3.0))
+

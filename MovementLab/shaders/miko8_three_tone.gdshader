@@ -62,7 +62,7 @@ void fragment(){
  vec3 tone=mix(shadow_tone,middle_tone,mid);
  tone=mix(tone,light_tone,lit);
  vec3 col=base*tone;
- col+=vec3(0.95,0.38,0.06)*droid_warning*0.25;
+ col+=vec3(1.0)*droid_warning*0.6;
  if (rim_intensity > 0.001) {
      vec3 to_light = rim_light_pos - world_pos;
      vec3 light_dir = normalize(to_light);
@@ -74,3 +74,4 @@ void fragment(){
  }
  ALBEDO=transfer_paint(col,transfer_point,NORMAL,VIEW);
 }
+

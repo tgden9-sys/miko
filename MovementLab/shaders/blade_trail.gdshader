@@ -16,6 +16,7 @@ render_mode unshaded, blend_mix, cull_disabled, depth_draw_never;
 #include "res://shaders/lab_sword_wall.gdshaderinc"
 
 uniform int style_mode = 2;
+uniform vec3 effect_tint : source_color = vec3(1.0);
 
 void vertex() {
 	sword_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
@@ -227,6 +228,6 @@ void fragment() {
 		out_alpha = clamp((core * 1.4 + radiant_aura * 0.75 + ray_burst) * ribbon_mask * 1.35 * COLOR.a, 0.0, 1.0);
 	}
 	
-	ALBEDO = out_color;
+	ALBEDO = out_color * effect_tint;
 	ALPHA = out_alpha;
 }
