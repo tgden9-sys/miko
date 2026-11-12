@@ -8,7 +8,7 @@ static func install(player: AnimationPlayer, rig: Skeleton3D, file: String) -> v
 		var clip: Dictionary = data.clips[label]
 		var animation := Animation.new()
 		animation.length = clip.duration
-		animation.loop_mode = Animation.LOOP_LINEAR if label in ["SwordIdle", "ShieldIdle", "CrouchForward"] else Animation.LOOP_NONE
+		animation.loop_mode = Animation.LOOP_LINEAR if label in ["SwordIdle", "ShieldIdle", "CrouchForward", "Walk"] else Animation.LOOP_NONE
 		for bone: String in clip.frames[0]:
 			var position_track := animation.add_track(Animation.TYPE_POSITION_3D)
 			var rotation_track := animation.add_track(Animation.TYPE_ROTATION_3D)

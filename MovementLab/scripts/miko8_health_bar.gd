@@ -27,19 +27,20 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var camera := get_viewport().get_camera_3d()
-	if not camera or not actor.is_visible_in_tree() or (hostile and actor.health <= 0) or (not hostile and actor.state == "NetworkTransfer"):
+	if not camera or not actor.is_visible_in_tree() or (hostile and actor.health <= 0) or (not hostile and actor.get("state") == "NetworkTransfer"):
 		hide()
 		return
 	var head := actor.global_position + Vector3.UP * head_height
-	if head_bone >= 0:
+	if head_bone >= 0 and actor.get("skeleton"):
 		head = actor.skeleton.to_global(actor.skeleton.get_bone_global_pose(head_bone).origin)
 	var anchor := head + Vector3.UP * .55
 	position = camera.unproject_position(anchor)
 	visible = not camera.is_position_behind(anchor)
 
-	var health := float(actor.health) / float(actor.MAX_HEALTH)
+	var max_hp: float = float(actor.MAX_HEALTH) if "MAX_HEALTH" in actor else 100.0
+	var health := float(actor.health) / max_hp
 	var fill := move_toward(displayed_health, health, delta * 2.8)
-	var polarity: int = 0 if hostile else actor.suit_polarity
+	var polarity: int = 0 if hostile else int(actor.get("suit_polarity"))
 	if fill != displayed_health or polarity != displayed_polarity:
 		displayed_health = fill
 		displayed_polarity = polarity

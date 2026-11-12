@@ -145,9 +145,14 @@ var struck: Array[Node] = []
 var jump_pose_age := 1.0
 var land_age := 1.0
 var slam_landed := false
-var health := 100
+const MAX_HEALTH := 100
+var health := MAX_HEALTH
 var parry_count := 0
 var invulnerable := 0.0
+const HIT_DURATION := 0.32
+var hit_clip := "HitStomach"
+var death_clip := "Death1"
+var death_variant := 1
 var automation := false
 var command_axis := 0.0
 var command_vertical := 0.0
@@ -200,6 +205,8 @@ func _ready() -> void:
 		player.get_animation("MIKO8_"+name).loop_mode = Animation.LOOP_LINEAR
 	preload("res://scripts/animation_bank.gd").install(player, skeleton, "res://models/MIKO8_Combat.json")
 	preload("res://scripts/animation_bank.gd").install(player, skeleton, "res://models/LabActions.json")
+	preload("res://scripts/animation_bank.gd").install(player, skeleton, "res://models/MIKO8_Reactions.json")
+	_install_walk_animation()
 	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		for surface in range(mesh.mesh.get_surface_count()):
 			var original := mesh.get_active_material(surface) as StandardMaterial3D
@@ -385,9 +392,14 @@ func reset() -> void:
 		if is_instance_valid(sp.get("node")):
 			sp.node.queue_free()
 	falling_sparks.clear()
-	health = 100
+	health = MAX_HEALTH
 	parry_count = 0
 	invulnerable = 0
+	hit_clip = "HitKnockback"
+	death_clip = "Death1"
+	visual.visible = true
+	for mat in suit_materials:
+		mat.set_shader_parameter("droid_warning", 0.0)
 	jump_pose_age = 1
 	land_age = 1
 	for action: String in buffers: buffers[action] = 0.0
@@ -429,6 +441,14 @@ func _physics_process(delta: float) -> void:
 	dash_cooldown = maxf(0, dash_cooldown-delta)
 	combo_timeout = maxf(0, combo_timeout-delta)
 	invulnerable = maxf(0, invulnerable-delta)
+	if invulnerable > 0:
+		var flash := 0.6 * maxf(0.0, 1.0 - (age / 0.10)) if state == "hit" else 0.0
+		for mat in suit_materials:
+			mat.set_shader_parameter("droid_warning", flash)
+	else:
+		for mat in suit_materials:
+			mat.set_shader_parameter("droid_warning", 0.0)
+	visual.visible = true
 	var grounded := is_on_floor()
 	if grounded and velocity.y <= 0:
 		coyote = COYOTE
@@ -442,13 +462,14 @@ func _physics_process(delta: float) -> void:
 		var requested := _requested_laser() if not automation else 0
 		if state == "laser" and (requested == 0 or vertical < -.5 or _combat_buffered()):
 			_change_state("move")
-		_update_crouch(delta, grounded, vertical, axis)
+		if state not in ["hit", "death"]:
+			_update_crouch(delta, grounded, vertical, axis)
 		if state == "move" and not crouched and requested != 0 and not _combat_buffered():
 			_change_state("laser")
 		laser_pole = requested if state == "laser" else 0
 		if laser_pole != 0:
 			_update_laser_direction()
-	var can_cancel := not crouched and (state == "move" or (state == "attack" and age >= _active_end()) or (state == "parry" and age > .20))
+	var can_cancel := not crouched and state not in ["hit", "death"] and (state == "move" or (state == "attack" and age >= _active_end()) or (state == "parry" and age > .20))
 	if can_cancel and buffers.dash > 0 and dash_cooldown <= 0 and (grounded or not air_dash_used):
 		buffers.dash = 0.0
 		if absf(axis) > .15: facing = 1 if axis > 0 else -1
@@ -556,6 +577,12 @@ func _physics_process(delta: float) -> void:
 				if age >= .24: _change_state("move")
 			elif age < .11: velocity.y = .6
 			else: velocity.y = -24
+		"hit":
+			velocity.x = move_toward(velocity.x, 0.0, 14.0 * delta)
+			if age >= HIT_DURATION and is_on_floor():
+				_change_state("move")
+		"death":
+			velocity.x = move_toward(velocity.x, 0.0, 10.0 * delta)
 	velocity.z = 0
 	var fall_speed := maxf(0.0,-velocity.y)
 	move_and_slide()
@@ -754,12 +781,12 @@ func _strike(slam := false) -> void:
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = shape
 	query.transform.origin = global_position + (Vector3(0,.55,0) if slam else Vector3(facing*.9,1.0,0))
-	query.collision_mask = 4
+	query.collision_mask = 5
 	for result: Dictionary in get_world_3d().direct_space_state.intersect_shape(query, 8):
 		var target: Node3D = result.collider
 		if target in struck or not target.has_method("receive_hit"): continue
 		var point := target.global_position+Vector3.UP*.9
-		var ray := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP*.8, point, 1)
+		var ray := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP*.8, point, 1, [target.get_rid()])
 		if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): continue
 		struck.append(target)
 		var launch := 8.5 if attack_kind == "launcher" else (4.0 if slam else (3.0 if attack_in_air else 0.0))
@@ -783,19 +810,48 @@ func _strike(slam := false) -> void:
 		impact.emit(point, imp)
 
 func receive_attack(from_x: float) -> bool:
-	if state == "dash" or invulnerable > 0: return false
+	if state in ["dash", "death"] or invulnerable > 0: return false
 	if state == "parry" and age >= .025 and age <= .17 and (from_x-global_position.x)*facing > 0:
 		parry_count += 1
 		hitstop = .075
 		impact.emit(global_position+Vector3(facing*.5,1,0), .55)
 		return true
 	health = maxi(0, health-10)
-	invulnerable = .65
-	impact.emit(global_position+Vector3.UP, .2)
+	hitstop = .08
+	invulnerable = 0.40
+	impact.emit(global_position+Vector3.UP, .35)
+	var hit_dir := 1 if from_x < global_position.x else -1
+	facing = -hit_dir
+	visual.rotation.y = facing * PI * 0.5
+	if health <= 0:
+		_start_death(hit_dir)
+	else:
+		_start_hit(hit_dir)
 	return false
 
+func _start_hit(hit_dir: int) -> void:
+	hit_clip = "HitStomach"
+	_change_state("hit")
+	velocity.x = hit_dir * 1.5
+	velocity.y = 0.0
+	crouched = false
+	crouch_time = 0.0
+	crouch_exit_time = -1.0
+	action_started.emit("hit")
+
+func _start_death(hit_dir: int) -> void:
+	death_clip = "Death%d" % death_variant
+	death_variant = 2 if death_variant == 1 else 1
+	_change_state("death")
+	velocity.x = hit_dir * 2.2
+	velocity.y = 1.6
+	crouched = false
+	crouch_time = 0.0
+	crouch_exit_time = -1.0
+	action_started.emit("death")
+
 func _clip(label: String) -> String:
-	for library: String in ["MIKO8_Combat/", "LabActions/", "MIKO8_Crouch/", "LaserPose/", "MIKO8_"]:
+	for library: String in ["MIKO8_Combat/", "LabActions/", "MIKO8_Crouch/", "MIKO8_Reactions/", "MIKO8_Walk/", "LaserPose/", "MIKO8_"]:
 		if player.has_animation(library+label): return library+label
 	return "MIKO8_Idle"
 
@@ -819,7 +875,7 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 	
 	# Procedural spine/torso banking (Prince of Persia style lean)
 	var target_lean := 0.0
-	if state in ["attack", "parry", "slam"]:
+	if state in ["attack", "parry", "slam", "hit", "death"]:
 		target_lean = 0.0
 	elif state == "dash":
 		target_lean = -float(facing) * 0.14
@@ -867,6 +923,12 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 		# Hold the overhead anticipation while falling. Contact plays the
 		# downward strike (frames 8-11), then compresses the long recovery.
 		_pose("GroundPound", lerpf(10.0/30,1.16,clampf(age/.24,0,1)) if slam_landed else minf(2.0/30+age*1.2,8.0/30))
+	elif state == "hit":
+		var anim_len: float = player.get_animation(_clip(hit_clip)).length
+		_pose(hit_clip, minf(age * 1.8, anim_len - 0.01))
+	elif state == "death":
+		var anim_len: float = player.get_animation(_clip(death_clip)).length
+		_pose(death_clip, minf(age, anim_len - 0.01))
 	elif state == "laser":
 		var enter_length := player.get_animation(_clip("SpellSingleEnter")).length
 		var enter_time := age*2.8
@@ -899,13 +961,15 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 			else:
 				_pose("AirIdle", fmod(jump_pose_age, 1.0666))
 	else:
-		# Dual-tier locomotion blending (SwordIdle -> Run -> Sprint)
+		# Three-tier locomotion blending (SwordIdle -> Walk -> Run -> Sprint)
 		var speed := absf(velocity.x)
 		var label := "SwordIdle"
 		if speed > 4.2:
 			label = "Sprint"
-		elif speed > 0.20:
+		elif speed > 1.8:
 			label = "Run"
+		elif speed > 0.15:
+			label = "Walk"
 		
 		if label == "SwordIdle" and land_age < .10:
 			_pose("JumpLand", .18+land_age*2.0)
@@ -919,6 +983,8 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 				play_rate = clampf(speed / 7.2, 0.85, 1.35)
 			elif label == "Run":
 				play_rate = clampf(speed / 3.8, 0.80, 1.40)
+			elif label == "Walk":
+				play_rate = clampf(speed / 1.3, 0.75, 1.35)
 			player.advance(delta * play_rate)
 	# Preserve the established head lift without accumulating a modifier offset.
 	if head >= 0:
@@ -1243,6 +1309,20 @@ func _install_polarity_poses() -> void:
 	laser_hand = skeleton.find_bone("DEF-hand.L")
 	laser_forearm = skeleton.find_bone("DEF-forearm.L")
 	laser_upper_arm = skeleton.find_bone("DEF-upper_arm.L")
+
+func _install_walk_animation() -> void:
+	var library := AnimationLibrary.new()
+	var anim: Animation = (load("res://models/MIKO8_Walk.res") as Animation).duplicate(true)
+	anim.loop_mode = Animation.LOOP_LINEAR
+	var path := str(player.get_node(player.root_node).get_path_to(skeleton))
+	for track in range(anim.get_track_count() - 1, -1, -1):
+		var bone_path := anim.track_get_path(track)
+		if bone_path.get_subname_count() != 1 or skeleton.find_bone(bone_path.get_subname(0)) < 0:
+			anim.remove_track(track)
+		else:
+			anim.track_set_path(track, NodePath(path + ":" + str(bone_path.get_subname(0))))
+	library.add_animation("Walk", anim)
+	player.add_animation_library("MIKO8_Walk", library)
 
 func _play_locomotion(label: String, delta: float) -> void:
 	var full := _clip(label)

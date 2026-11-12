@@ -86,6 +86,9 @@ func _block(label: String, location: Vector3, size: Vector3, color: Color, visib
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	var health_bar := preload("res://scripts/miko8_health_bar.gd").new()
+	health_bar.actor = actor
+	layer.add_child(health_bar)
 	var title := Label.new()
 	title.text = course_title
 	title.position = Vector2(36,26)

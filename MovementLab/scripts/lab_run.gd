@@ -18,6 +18,9 @@ var shadow_query := PhysicsRayQueryParameters3D.new()
 var bulkhead_bounds: Array[AABB] = []
 var polarity_crate: RigidBody3D
 var step_fx: MultiMeshInstance3D
+var extra_droids: Array[CharacterBody3D] = []
+var metal_crates: Array[RigidBody3D] = []
+var wooden_crates: Array[StaticBody3D] = []
 
 func _ready() -> void:
 	course_title = "MIKO   /   WAKE LAB"
@@ -42,11 +45,90 @@ func _ready() -> void:
 	step_fx.actor = actor
 	add_child(step_fx)
 	dummy.home = Vector3(32,6,0)
-	polarity_crate = preload("res://scripts/miko8_charge_box.gd").new()
-	polarity_crate.name = "PolarityCrate"
-	polarity_crate.position = Vector3(17,.4,0)
-	add_child(polarity_crate)
+	_spawn_extra_droids()
+	_spawn_crates()
 	reset_room()
+
+func _spawn_extra_droids() -> void:
+	# 5 extra Agile Droids distributed across each floor/section (6 droids total):
+	# dummy (Floor 1 mid): Vector3(32, 6, 0)
+	var droid_homes: Array[Vector3] = [
+		Vector3(26, 0, 0),    # Floor 0: Wake Bay / corridor
+		Vector3(45, 0, 0),    # Floor 0: Approach to East Shaft
+		Vector3(20, 6, 0),    # Floor 1: Coolant Gallery West
+		Vector3(30, 12, 0),   # Floor 2: Upper Transfer Left
+		Vector3(50, 12, 0),   # Floor 2: Upper Transfer Right
+	]
+	for i in range(droid_homes.size()):
+		var loc: Vector3 = droid_homes[i]
+		var d = preload("res://scripts/agile_droid.gd").new()
+		d.name = "AgileDroid_%d" % (i + 1)
+		d.actor = actor
+		d.model_scene = course_target_model
+		d.home = loc
+		add_child(d)
+		extra_droids.append(d)
+
+func _spawn_crates() -> void:
+	# Metal Crates: 10 total across the levels
+	# Polarity charge boxes (.8 x .8 x .8), some singles and doubles
+	var metal_spawns: Array[Dictionary] = [
+		# Floor 0
+		{"pos": Vector3(17, 0.4, 0), "elev": 0.0},                  # Primary polarity crate
+		{"pos": Vector3(21, 0.4, 0), "elev": 0.0},
+		{"pos": Vector3(21, 1.2, 0), "elev": 0.0},                  # Double stack at x=21
+		{"pos": Vector3(38, 0.4, 0), "elev": 0.0},
+		# Floor 1 (y=6.0)
+		{"pos": Vector3(15, 6.4, 0), "elev": 6.0},
+		{"pos": Vector3(25, 6.4, 0), "elev": 6.0},
+		{"pos": Vector3(40, 6.4, 0), "elev": 6.0},
+		{"pos": Vector3(40, 7.2, 0), "elev": 6.0},                  # Double stack at x=40
+		# Floor 2 (y=12.0)
+		{"pos": Vector3(18, 12.4, 0), "elev": 12.0},
+		{"pos": Vector3(42, 12.4, 0), "elev": 12.0},
+	]
+	for i in range(metal_spawns.size()):
+		var spec: Dictionary = metal_spawns[i]
+		var mc = preload("res://scripts/miko8_charge_box.gd").new()
+		mc.name = "MetalCrate_%d" % (i + 1)
+		mc.position = spec.pos
+		mc.elevated_lane_floor_y = spec.elev
+		add_child(mc)
+		metal_crates.append(mc)
+		if i == 0:
+			polarity_crate = mc
+
+	# Wooden Crates: 15 total across the levels
+	# Breakable wooden crates (.96 x .95 x .96), some singles and doubles
+	var wood_spawns: Array[Dictionary] = [
+		# Floor 0
+		{"pos": Vector3(11, 0.0, 0), "settle": false},
+		{"pos": Vector3(14, 0.0, 0), "settle": false},
+		{"pos": Vector3(14, 0.95, 0), "settle": true},               # Double stack at x=14
+		{"pos": Vector3(34, 0.0, 0), "settle": false},
+		{"pos": Vector3(48, 0.0, 0), "settle": false},
+		# Floor 1 (y=6.0)
+		{"pos": Vector3(29, 6.0, 0), "settle": false},
+		{"pos": Vector3(29, 6.95, 0), "settle": true},               # Double stack at x=29
+		{"pos": Vector3(46, 6.0, 0), "settle": false},
+		{"pos": Vector3(46, 6.95, 0), "settle": true},               # Double stack at x=46
+		# Floor 2 (y=12.0)
+		{"pos": Vector3(22, 12.0, 0), "settle": false},
+		{"pos": Vector3(26, 12.0, 0), "settle": false},
+		{"pos": Vector3(26, 12.95, 0), "settle": true},              # Double stack at x=26
+		{"pos": Vector3(37, 12.0, 0), "settle": false},
+		{"pos": Vector3(56, 12.0, 0), "settle": false},
+		# Dispatch Ground (y=0.0)
+		{"pos": Vector3(86, 0.0, 0), "settle": false},
+	]
+	for i in range(wood_spawns.size()):
+		var spec: Dictionary = wood_spawns[i]
+		var wc = preload("res://scripts/miko8_wooden_crate.gd").new()
+		wc.name = "WoodenCrate_%d" % (i + 1)
+		wc.position = spec.pos
+		wc.settle_stack = spec.settle
+		add_child(wc)
+		wooden_crates.append(wc)
 
 func _add_network_node(node_name: String, x: float) -> void:
 	var node := preload("res://scripts/miko8_transfer_visual.gd").new()
@@ -82,6 +164,9 @@ func _bulkhead(label: String, at: Vector3, size: Vector3) -> void:
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	var health_bar := preload("res://scripts/miko8_health_bar.gd").new()
+	health_bar.actor = actor
+	layer.add_child(health_bar)
 	_hud_plate(layer,Vector2(34,27),Vector2(460,102))
 	_hud_text(layer,Vector2(56,38),course_title,16,Color("efbb7e"))
 	status = _hud_text(layer,Vector2(56,57),"",25,Color("e8ebe4"))
@@ -128,7 +213,15 @@ func reset_room() -> void:
 	super.reset_room()
 	actor.position = CHECKPOINTS[checkpoint_room]
 	if step_fx: step_fx.clear()
-	if polarity_crate: polarity_crate.reset_charge_body()
+	for mc in metal_crates:
+		if mc and is_instance_valid(mc):
+			mc.reset_charge_body()
+	for wc in wooden_crates:
+		if wc and is_instance_valid(wc):
+			wc.reset_crate()
+	for d in extra_droids:
+		if d and is_instance_valid(d):
+			d.reset()
 	actor._update_sword_walls()
 	camera_focus = actor.position.x + float(actor.facing) * 2.2
 	camera_height = actor.position.y + 2.7
