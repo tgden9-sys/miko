@@ -33,6 +33,10 @@ var struck := false
 var model_scale := 1.0
 var trail_fx: Node3D
 var jump_cooldown := 0.0
+var always_pursue := false
+var is_wave_droid := false
+var custom_health := 0
+var run_speed_multiplier := 1.0
 
 func _ready() -> void:
 	super._ready()
@@ -135,7 +139,7 @@ func reset() -> void:
 		death_tween.kill()
 		death_tween = null
 	show()
-	health = MAX_HEALTH
+	health = custom_health if custom_health > 0 else MAX_HEALTH
 	collision_layer = 4
 	mode = Mode.PATROL
 	elapsed = 0.0
@@ -159,6 +163,10 @@ func _enter(next: Mode) -> void:
 	mode = next
 	elapsed = 0.0
 	struck = false
+	if next == Mode.SWIPE:
+		var sfx = preload("res://scripts/miko8_sound.gd").get_instance(self)
+		if sfx:
+			sfx.play_droid_sword()
 
 func _physics_process(delta: float) -> void:
 	_update_popups(delta)
@@ -196,7 +204,7 @@ func _physics_process(delta: float) -> void:
 						else:
 							speed = 0.0
 					else:
-						speed = facing * RUN_SPEED
+						speed = facing * RUN_SPEED * run_speed_multiplier
 						if is_on_floor() and jump_cooldown <= 0.0 and _should_jump_obstacle():
 							velocity.y = JUMP_VELOCITY
 							jump_cooldown = 0.55
@@ -254,7 +262,11 @@ func _should_jump_obstacle() -> bool:
 	return not knee_hit.is_empty()
 
 func _sees_miko() -> bool:
-	if actor.health <= 0 or absf(actor.position.x-position.x) > SIGHT_RANGE or absf(actor.position.y-position.y) > 2.2:
+	if actor.health <= 0:
+		return false
+	if always_pursue:
+		return true
+	if absf(actor.position.x-position.x) > SIGHT_RANGE or absf(actor.position.y-position.y) > 2.2:
 		return false
 	var query := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP, actor.global_position+Vector3.UP, 1, [get_rid()])
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
@@ -347,9 +359,14 @@ func receive_hit(amount: int, direction: int, lift: float) -> void:
 
 func _start_death() -> void:
 	death_tween = create_tween()
-	death_tween.tween_interval(5.0)
-	death_tween.tween_method(_set_dissolve,0.0,1.0,.9)
-	death_tween.tween_callback(hide)
+	var delay: float = 1.0 if is_wave_droid else 5.0
+	death_tween.tween_interval(delay)
+	death_tween.tween_method(_set_dissolve, 0.0, 1.0, 0.8)
+	death_tween.tween_callback(func():
+		hide()
+		if is_wave_droid:
+			queue_free()
+	)
 
 func _set_dissolve(value: float) -> void:
 	for material in droid_materials:

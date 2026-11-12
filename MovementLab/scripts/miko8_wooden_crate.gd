@@ -1,8 +1,8 @@
 extends StaticBody3D
 
-const CRATE_WIDTH := 0.96
-const CRATE_HEIGHT := 0.95
-const CRATE_DEPTH := 0.96
+const CRATE_WIDTH := 0.8
+const CRATE_HEIGHT := 0.8
+const CRATE_DEPTH := 0.8
 
 var broken := false
 var settle_stack := false
@@ -27,6 +27,7 @@ func _ready() -> void:
 	
 	if ResourceLoader.exists("res://models/props/wooden_crate.glb"):
 		visual_model = load("res://models/props/wooden_crate.glb").instantiate()
+		visual_model.scale = Vector3(0.8 / 0.998, 0.8 / 0.95, 0.8 / 0.998)
 		add_child(visual_model)
 		# Ensure wooden crate materials use three-tone shader or cel look
 		for mesh: MeshInstance3D in visual_model.find_children("*", "MeshInstance3D", true, false):

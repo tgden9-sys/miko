@@ -21,6 +21,14 @@ var step_fx: MultiMeshInstance3D
 var extra_droids: Array[CharacterBody3D] = []
 var metal_crates: Array[RigidBody3D] = []
 var wooden_crates: Array[StaticBody3D] = []
+const MAX_WAVE_DROIDS := 8
+const WAVE_SPAWN_INTERVAL := 2.5
+var wave_droids: Array[CharacterBody3D] = []
+var wave_spawn_timer := 0.0
+var wave_spawn_index := 0
+var wave_spawn_total := 0
+var wave_active := false
+var audio_suite: CanvasLayer
 
 func _ready() -> void:
 	course_title = "MIKO   /   WAKE LAB"
@@ -44,6 +52,8 @@ func _ready() -> void:
 	step_fx = preload("res://scripts/lab_step_fx.gd").new()
 	step_fx.actor = actor
 	add_child(step_fx)
+	audio_suite = preload("res://scripts/audio_suite_ui.gd").new()
+	add_child(audio_suite)
 	dummy.home = Vector3(32,6,0)
 	_spawn_extra_droids()
 	_spawn_crates()
@@ -99,23 +109,23 @@ func _spawn_crates() -> void:
 			polarity_crate = mc
 
 	# Wooden Crates: 15 total across the levels
-	# Breakable wooden crates (.96 x .95 x .96), some singles and doubles
+	# Breakable wooden crates (.8 x .8 x .8), matching metal crate dimensions
 	var wood_spawns: Array[Dictionary] = [
 		# Floor 0
 		{"pos": Vector3(11, 0.0, 0), "settle": false},
 		{"pos": Vector3(14, 0.0, 0), "settle": false},
-		{"pos": Vector3(14, 0.95, 0), "settle": true},               # Double stack at x=14
+		{"pos": Vector3(14, 0.8, 0), "settle": true},                # Double stack at x=14
 		{"pos": Vector3(34, 0.0, 0), "settle": false},
 		{"pos": Vector3(48, 0.0, 0), "settle": false},
 		# Floor 1 (y=6.0)
 		{"pos": Vector3(29, 6.0, 0), "settle": false},
-		{"pos": Vector3(29, 6.95, 0), "settle": true},               # Double stack at x=29
+		{"pos": Vector3(29, 6.8, 0), "settle": true},                # Double stack at x=29
 		{"pos": Vector3(46, 6.0, 0), "settle": false},
-		{"pos": Vector3(46, 6.95, 0), "settle": true},               # Double stack at x=46
+		{"pos": Vector3(46, 6.8, 0), "settle": true},                # Double stack at x=46
 		# Floor 2 (y=12.0)
 		{"pos": Vector3(22, 12.0, 0), "settle": false},
 		{"pos": Vector3(26, 12.0, 0), "settle": false},
-		{"pos": Vector3(26, 12.95, 0), "settle": true},              # Double stack at x=26
+		{"pos": Vector3(26, 12.8, 0), "settle": true},               # Double stack at x=26
 		{"pos": Vector3(37, 12.0, 0), "settle": false},
 		{"pos": Vector3(56, 12.0, 0), "settle": false},
 		# Dispatch Ground (y=0.0)
@@ -173,6 +183,12 @@ func _build_ui() -> void:
 	direction_hint = _hud_text(layer,Vector2(56,91),"",15,Color("afc0bd"))
 	_hud_plate(layer,Vector2(1504,27),Vector2(382,72))
 	diagnostics = _hud_text(layer,Vector2(1525,42),"",17,Color("bfdbd4"))
+	var suite_btn := Button.new()
+	suite_btn.text = "AUDIO SUITE (F3)"
+	suite_btn.position = Vector2(1330, 42)
+	suite_btn.size = Vector2(150, 42)
+	suite_btn.pressed.connect(func(): if audio_suite: audio_suite.toggle_suite())
+	layer.add_child(suite_btn)
 	_hud_plate(layer,Vector2(34,975),Vector2(1270,75))
 	_hud_text(layer,Vector2(54,986),"B  Jump    A  Dash    Y  Sword    X  Parry    Down  Crouch / Look below    View  Reset    R3  Close view",18,Color("e8ebe4"))
 	_hud_text(layer,Vector2(54,1015),"LT  Red laser    RT  Blue laser    LB  Charge red    RB  Charge blue    Right stick  Aim",15,Color("b7c4c4"))
@@ -222,6 +238,12 @@ func reset_room() -> void:
 	for d in extra_droids:
 		if d and is_instance_valid(d):
 			d.reset()
+	for d in wave_droids:
+		if d and is_instance_valid(d):
+			d.queue_free()
+	wave_droids.clear()
+	wave_spawn_timer = 0.0
+	wave_active = false
 	actor._update_sword_walls()
 	camera_focus = actor.position.x + float(actor.facing) * 2.2
 	camera_height = actor.position.y + 2.7
@@ -272,7 +294,14 @@ func _update_camera(delta: float) -> void:
 
 func _update_status() -> void:
 	status.text = ROOM_NAMES[active_room]
-	direction_hint.text = ROOM_HINTS[active_room]
+	if wave_active and active_room == 6:
+		var alive_wave := 0
+		for d in wave_droids:
+			if is_instance_valid(d) and d.health > 0 and d.mode != d.Mode.DOWN:
+				alive_wave += 1
+		direction_hint.text = "DEFEND NETWORK RELAY  /  HOSTILES: %d" % alive_wave
+	else:
+		direction_hint.text = ROOM_HINTS[active_room]
 	diagnostics.text = "L%d  /  HP %d  /  %s  /  %d FPS" % [clampi(int((actor.position.y+.2)/6),0,2),actor.health,["NEUTRAL","RED","BLUE"][actor.suit_polarity],Engine.get_frames_per_second()]
 
 
@@ -292,7 +321,8 @@ func _build_contact_shadow() -> void:
 	contact_shadow.rotation.x = -PI/2
 	add_child(contact_shadow)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	_update_wave_spawner(delta)
 	var foot := actor.global_position
 	shadow_query.from = foot + Vector3.UP * .06
 	shadow_query.to = foot + Vector3.DOWN * 3.0
@@ -304,4 +334,60 @@ func _physics_process(_delta: float) -> void:
 		contact_shadow.position = surface + Vector3.UP * .024
 		contact_shadow.scale = Vector3.ONE * (1.0 + height*.18)
 		contact_shadow.material_override.set_shader_parameter("opacity",.46*maxf(0.0,1.0-height/3.0))
+
+func _update_wave_spawner(delta: float) -> void:
+	if not wave_active:
+		if actor.position.x >= 79.0 and actor.position.y < 3.0:
+			wave_active = true
+			wave_spawn_timer = 0.0
+			# Immediately drop first cluster of 3 droids into Dispatch
+			for i in range(3):
+				_spawn_wave_droid()
+
+	if not wave_active:
+		return
+
+	if actor.health <= 0 or actor.position.x < 68.0:
+		return
+
+	wave_droids = wave_droids.filter(func(d: CharacterBody3D) -> bool: return is_instance_valid(d))
+	var alive_count := 0
+	for d in wave_droids:
+		if is_instance_valid(d) and d.health > 0 and d.mode != d.Mode.DOWN:
+			alive_count += 1
+
+	if alive_count < MAX_WAVE_DROIDS:
+		wave_spawn_timer += delta
+		var spawn_rate := 1.0 if alive_count < 4 else 1.6
+		if wave_spawn_timer >= spawn_rate:
+			wave_spawn_timer = 0.0
+			_spawn_wave_droid()
+
+func _spawn_wave_droid() -> void:
+	# Distributed drop points from higher level descent shaft and upper dispatch ceiling
+	var spawn_points: Array[Vector3] = [
+		Vector3(77.0, 5.2, 0.0), # Descent shaft higher ledge (drops 5.2m)
+		Vector3(81.0, 3.6, 0.0), # Dispatch entrance drop (drops 3.6m)
+		Vector3(85.0, 3.6, 0.0), # Dispatch mid drop (drops 3.6m)
+		Vector3(89.0, 3.6, 0.0), # Network relay drop (drops 3.6m)
+		Vector3(75.5, 4.8, 0.0), # Descent landing drop (drops 4.8m)
+		Vector3(83.0, 3.6, 0.0), # Crate approach drop (drops 3.6m)
+		Vector3(87.0, 3.6, 0.0), # Relay approach drop (drops 3.6m)
+		Vector3(78.0, 5.0, 0.0), # Entrance threshold drop (drops 5.0m)
+	]
+	var spawn_pos: Vector3 = spawn_points[wave_spawn_index % spawn_points.size()]
+	wave_spawn_index += 1
+	wave_spawn_total += 1
+	var d = preload("res://scripts/agile_droid.gd").new()
+	d.name = "WaveDroid_%d" % wave_spawn_total
+	d.actor = actor
+	d.model_scene = course_target_model
+	d.home = spawn_pos
+	d.position = spawn_pos
+	d.always_pursue = true
+	d.is_wave_droid = true
+	d.custom_health = 80
+	d.run_speed_multiplier = randf_range(0.88, 1.05)
+	add_child(d)
+	wave_droids.append(d)
 

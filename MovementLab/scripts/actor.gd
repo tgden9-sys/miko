@@ -758,6 +758,9 @@ func _start_attack(kind: String, index: int) -> void:
 	combo = index
 	queued_combo = false
 	struck.clear()
+	var sfx = preload("res://scripts/miko8_sound.gd").get_instance(self)
+	if sfx:
+		sfx.play_miko_swing(index, attack_kind == "launcher" or (not is_on_floor() and velocity.y < -4.0))
 	# Physics keeps its existing jump arc; authored air poses supply the motion.
 
 func _attack_spec() -> Dictionary:
@@ -808,6 +811,9 @@ func _strike(slam := false) -> void:
 		hitstop = hs
 		target.hitstop = hs
 		impact.emit(point, imp)
+		var sfx = preload("res://scripts/miko8_sound.gd").get_instance(self)
+		if sfx:
+			sfx.play_contact(imp)
 
 func receive_attack(from_x: float) -> bool:
 	if state in ["dash", "death"] or invulnerable > 0: return false
@@ -815,11 +821,17 @@ func receive_attack(from_x: float) -> bool:
 		parry_count += 1
 		hitstop = .075
 		impact.emit(global_position+Vector3(facing*.5,1,0), .55)
+		var sfx = preload("res://scripts/miko8_sound.gd").get_instance(self)
+		if sfx:
+			sfx.play_parry()
 		return true
 	health = maxi(0, health-10)
 	hitstop = .08
 	invulnerable = 0.40
 	impact.emit(global_position+Vector3.UP, .35)
+	var sfx = preload("res://scripts/miko8_sound.gd").get_instance(self)
+	if sfx:
+		sfx.play_contact(0.4)
 	var hit_dir := 1 if from_x < global_position.x else -1
 	facing = -hit_dir
 	visual.rotation.y = facing * PI * 0.5

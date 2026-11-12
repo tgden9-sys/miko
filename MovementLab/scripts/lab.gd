@@ -30,6 +30,9 @@ func _ready() -> void:
 	key.light_energy = 1.1
 	key.shadow_enabled = course_shadows
 	add_child(key)
+	var sfx_manager = preload("res://scripts/miko8_sound.gd").new()
+	sfx_manager.name = "Miko8Sound"
+	add_child(sfx_manager)
 	_build_course()
 	actor = preload("res://scripts/actor.gd").new()
 	actor.name = "Miko"
