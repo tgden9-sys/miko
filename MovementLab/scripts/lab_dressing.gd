@@ -29,6 +29,9 @@ func _ready() -> void:
 	column_material = shaft_material.duplicate() as StandardMaterial3D
 	column_material.uv1_scale = Vector3(.179,1.0,1.0)
 	column_material.uv1_offset = Vector3(.013,0,0)
+	_build_layout()
+
+func _build_layout() -> void:
 	_hall("WakeBay",0,18,0,[Machine.EMPTY,Machine.PUMP])
 	_hall("Assembly",18,42,0,[Machine.EMPTY,Machine.PISTON,Machine.EMPTY])
 	_hall("EastAccess",42,58,0,[Machine.EMPTY,Machine.EMPTY])
@@ -50,11 +53,12 @@ func _section(section_name: String, location: Vector3) -> Kit:
 	add_child(root)
 	return Kit.new(root)
 
-func deck(start: float, end: float, level: float) -> void:
+func deck(start: float, end: float, level: float, surface: ShaderMaterial = null) -> void:
 	var x := start
 	while x < end:
 		var width := minf(5.0,end-x)
 		var kit := _section("DeckSkin",Vector3(x+width*.5,level,0))
+		kit.surface_material = surface
 		kit.box(Vector3(0,-.07,0),Vector3(width-.016,.14,3.7),FLOOR)
 		kit.box(Vector3(0,-.28,0),Vector3(width-.018,.3,3.61),INK)
 		kit.box(Vector3(0,-.205,1.82),Vector3(width-.04,.10,.09),STEEL)

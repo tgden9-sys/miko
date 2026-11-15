@@ -11,6 +11,8 @@ var previous_x := 0.0
 var stride := 0.0
 var left_foot := false
 var feet: Array[int] = []
+var ground_wisp_zone: Callable
+var ground_wisp_tint := Color.WHITE
 
 func _ready() -> void:
 	top_level = true
@@ -59,7 +61,9 @@ func _physics_process(_delta: float) -> void:
 	_ground_burst(point,3,1,.48,false)
 
 func _on_action(action: String) -> void:
-	if action == "jump":
+	if action == "dash" and actor.is_on_floor():
+		_ground_wisp(.45)
+	elif action == "jump":
 		_ground_burst(actor.global_position,6,4,.86,true)
 	elif action == "double jump":
 		var point := actor.global_position + Vector3(0,.06,.15)
@@ -75,6 +79,17 @@ func _on_land(speed: float) -> void:
 		return
 	var strength := clampf(speed/12.0,.44,1.15)
 	_ground_burst(actor.global_position,7,4,strength,true)
+	if speed >= 5.0:
+		_ground_wisp(strength)
+
+func _ground_wisp(strength: float) -> void:
+	var point := actor.global_position
+	if not ground_wisp_zone.is_valid() or not ground_wisp_zone.call(point):
+		return
+	for side in [-1.0,1.0]:
+		var drift := float(side)
+		_add(point+Vector3(drift*.14,.10,-.04),Vector3(drift*1.3,.14,0),
+			Vector2(.57,.17),.54,0,ground_wisp_tint,.31*strength)
 
 func _ground_burst(point: Vector3, dust_count: int, spark_count: int, strength: float, pulse: bool) -> void:
 	point.y += .055

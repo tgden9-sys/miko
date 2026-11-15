@@ -5,6 +5,7 @@ signal action_started(action: String)
 signal landed(speed: float)
 signal attack_effect(point: Vector3, direction: int, variant: int, slam: bool)
 signal sword_style_changed(index: int, name: String, desc: String)
+const WoodenCrate := preload("res://scripts/miko8_wooden_crate.gd")
 var effect_fired := false
 const SPEED := 7.2
 const ACCEL := 105.0
@@ -17,6 +18,10 @@ const COYOTE := 0.085
 const BUFFER := 0.14
 const DASH_SPEED := 17.5
 const DASH_TIME := 0.15
+const SHIELD_CAPACITY := 3
+const SHIELD_RECHARGE := 2.75
+const SHIELD_WALK_SPEED := 1.75
+const ElectricGuard := preload("res://scripts/lab_electric_guard.gd")
 const CROUCH_ENTER_TIME := 0.18
 const ATTACKS := [
 	{"clip":"SwordA", "startup":0.075, "active":0.065, "recovery":0.15, "contact":7.0/30.0, "end":8.0/30.0, "damage":24},
@@ -159,6 +164,10 @@ var command_vertical := 0.0
 var command_held := false
 var model_path := "res://models/Miko.glb"
 var polarity_controls := false
+var electric_shield_enabled := false
+var electric_guard: ElectricGuard
+var shield_hits := SHIELD_CAPACITY
+var shield_recharge_time := 0.0
 var suit_polarity := 0
 var suit_materials: Array[ShaderMaterial] = []
 var laser: Node3D
@@ -240,6 +249,11 @@ func _ready() -> void:
 	spark_mat_sakura = _make_unshaded(Color("ffb8d4"))
 	spark_mat_smoke = _make_unshaded(Color("7eaeb8"))
 	_install_input()
+	if electric_shield_enabled:
+		_install_shield_walk()
+		electric_guard = ElectricGuard.new()
+		electric_guard.actor = self
+		add_child(electric_guard)
 	reset()
 
 func _make_unshaded(col: Color) -> StandardMaterial3D:
@@ -279,6 +293,8 @@ func _install_input() -> void:
 		bindings["laser_blue"] = [KEY_G]
 		bindings["charge_red"] = [KEY_U]
 		bindings["charge_blue"] = [KEY_I]
+	if electric_shield_enabled:
+		bindings["shield"] = [KEY_X]
 	for action: String in bindings:
 		if InputMap.has_action(action): continue
 		InputMap.add_action(action, 0.2)
@@ -301,7 +317,7 @@ func _install_input() -> void:
 		"next_style": JOY_BUTTON_RIGHT_SHOULDER
 	}
 	# InputMap persists across scene loads, so clear the outgoing face and shoulder map.
-	for action in ["jump","attack","dash","parry","dummy","next_style","charge_red","charge_blue"]:
+	for action in ["jump","attack","dash","parry","dummy","next_style","charge_red","charge_blue","shield"]:
 		if InputMap.has_action(action):
 			for binding in InputMap.action_get_events(action):
 				if binding is InputEventJoypadButton:
@@ -321,6 +337,11 @@ func _install_input() -> void:
 			trigger.axis_value = 1.0
 			if not InputMap.action_has_event(action,trigger):
 				InputMap.action_add_event(action,trigger)
+	if electric_shield_enabled:
+		# Godot names these by Xbox layout: X is west and Y is north.
+		buttons["attack"] = JOY_BUTTON_X
+		buttons["parry"] = JOY_BUTTON_Y
+		buttons["shield"] = JOY_BUTTON_Y
 	for action: String in buttons:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action, 0.2)
@@ -356,6 +377,10 @@ func _install_laser_aim() -> void:
 		InputMap.action_add_event(action,key)
 
 func reset() -> void:
+	shield_hits = SHIELD_CAPACITY
+	shield_recharge_time = 0.0
+	if electric_guard:
+		electric_guard.reset()
 	_set_crouched(false)
 	crouch_time = 0.0
 	crouch_exit_time = -1.0
@@ -457,7 +482,9 @@ func _physics_process(delta: float) -> void:
 		air_hang_left = .14
 	else:
 		coyote = maxf(0, coyote-delta)
-	if absf(axis) > 0.15 and state == "move": facing = 1 if axis > 0 else -1
+	if absf(axis) > 0.15 and state in ["move", "shield"]: facing = 1 if axis > 0 else -1
+	if electric_shield_enabled:
+		_update_shield_state(grounded, delta)
 	if polarity_controls:
 		var requested := _requested_laser() if not automation else 0
 		if state == "laser" and (requested == 0 or vertical < -.5 or _combat_buffered()):
@@ -570,6 +597,9 @@ func _physics_process(delta: float) -> void:
 		"parry":
 			velocity.x = move_toward(velocity.x, 0.0, BRAKE*delta)
 			if age >= .34: _change_state("move")
+		"shield":
+			var pace := axis * SHIELD_WALK_SPEED if absf(axis) > .15 else 0.0
+			velocity.x = move_toward(velocity.x, pace, (28.0 if pace != 0.0 else BRAKE) * delta)
 		"slam":
 			velocity.x = 0
 			if slam_landed:
@@ -587,6 +617,7 @@ func _physics_process(delta: float) -> void:
 	var fall_speed := maxf(0.0,-velocity.y)
 	move_and_slide()
 	global_position.z = 0
+	var slam_contact := false
 	if is_on_floor() and not grounded and velocity.y <= 0:
 		land_age = 0
 		if state != "slam": landed.emit(fall_speed)
@@ -598,8 +629,7 @@ func _physics_process(delta: float) -> void:
 			slam_landed = true
 			age = 0
 			_strike(true)
-			impact.emit(global_position+Vector3.UP*.12, .55)
-			attack_effect.emit(global_position+Vector3(facing*1.65,0,0), facing, 0, true)
+			slam_contact = true
 			hitstop = .055
 	if global_position.y < -5: get_parent().reset_room()
 	if state == "dash":
@@ -608,6 +638,20 @@ func _physics_process(delta: float) -> void:
 		var target_rot := facing * PI * 0.5
 		visual.rotation.y = wrapf(rotate_toward(visual.rotation.y, target_rot, delta * 30.0), -PI, PI)
 	_animate(delta, axis)
+	if electric_guard:
+		electric_guard.set_guard(state == "shield" and not automation, facing, shield_hits)
+	if slam_contact:
+		var hand_bone := skeleton.find_bone("DEF-hand.R")
+		var hand := skeleton.global_transform * skeleton.get_bone_global_pose(hand_bone)
+		var sword := hand * blade.transform
+		var heel := sword * Vector3(.14, -.020, 0.0)
+		var tip := sword * Vector3(1.155, -.020, 0.0)
+		var floor_y := global_position.y
+		var contact := tip
+		if heel.y > floor_y and tip.y < floor_y:
+			contact = heel.lerp(tip, (heel.y - floor_y) / (heel.y - tip.y))
+		contact.y = floor_y
+		attack_effect.emit(contact, facing, 0, true)
 	_update_laser_beam(delta)
 	_update_sword_walls()
 	_update_trail()
@@ -744,6 +788,8 @@ func _physics_process(delta: float) -> void:
 func _change_state(value: String) -> void:
 	state = value
 	age = 0
+	if electric_guard and value != "shield":
+		electric_guard.set_guard(false, facing, shield_hits)
 	if value == "dash":
 		ghost_timer = 0.0
 	action_started.emit(value)
@@ -789,11 +835,16 @@ func _strike(slam := false) -> void:
 		var target: Node3D = result.collider
 		if target in struck or not target.has_method("receive_hit"): continue
 		var point := target.global_position+Vector3.UP*.9
+		if target.has_method("get_hit_point"):
+			point = target.get_hit_point()
 		var ray := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP*.8, point, 1, [target.get_rid()])
 		if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): continue
 		struck.append(target)
 		var launch := 8.5 if attack_kind == "launcher" else (4.0 if slam else (3.0 if attack_in_air else 0.0))
 		target.receive_hit(50 if slam else int(_attack_spec().damage), facing, launch)
+		if target is WoodenCrate:
+			# Crates supply their own flash, splinters and sound.
+			continue
 		var hs: float = 0.045
 		var imp: float = 0.28
 		if slam:
@@ -815,9 +866,21 @@ func _strike(slam := false) -> void:
 		if sfx:
 			sfx.play_contact(imp)
 
+func _absorb_with_shield(from_x: float, contact := Vector3.INF) -> bool:
+	if state != "shield" or shield_hits == 0 or (from_x - global_position.x) * facing <= 0.0:
+		return false
+	shield_hits -= 1
+	shield_recharge_time = SHIELD_RECHARGE
+	electric_guard.absorb(shield_hits, contact)
+	if shield_hits == 0:
+		_change_state("move")
+	return true
+
 func receive_attack(from_x: float) -> bool:
 	if state in ["dash", "death"] or invulnerable > 0: return false
-	if state == "parry" and age >= .025 and age <= .17 and (from_x-global_position.x)*facing > 0:
+	if _absorb_with_shield(from_x): return false
+	var frontal := (from_x - global_position.x) * facing > 0.0
+	if state == "parry" and age >= .025 and age <= .17 and frontal:
 		parry_count += 1
 		hitstop = .075
 		impact.emit(global_position+Vector3(facing*.5,1,0), .55)
@@ -863,7 +926,7 @@ func _start_death(hit_dir: int) -> void:
 	action_started.emit("death")
 
 func _clip(label: String) -> String:
-	for library: String in ["MIKO8_Combat/", "LabActions/", "MIKO8_Crouch/", "MIKO8_Reactions/", "MIKO8_Walk/", "LaserPose/", "MIKO8_"]:
+	for library: String in ["MIKO8_Combat/", "LabActions/", "MIKO8_Crouch/", "MIKO8_Reactions/", "MIKO8_Walk/", "MIKO8_Guard/", "LaserPose/", "MIKO8_"]:
 		if player.has_animation(library+label): return library+label
 	return "MIKO8_Idle"
 
@@ -887,7 +950,7 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 	
 	# Procedural spine/torso banking (Prince of Persia style lean)
 	var target_lean := 0.0
-	if state in ["attack", "parry", "slam", "hit", "death"]:
+	if state in ["attack", "parry", "shield", "slam", "hit", "death"]:
 		target_lean = 0.0
 	elif state == "dash":
 		target_lean = -float(facing) * 0.14
@@ -931,6 +994,12 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 		# then play a shortened return instead of waiting 1.23 seconds.
 		var t := lerpf(0,.16,age/.025) if age < .025 else (lerpf(.16,.56,(age-.025)/.145) if age < .17 else lerpf(.56,1.23,(age-.17)/.17))
 		_pose("SwordBlock",t)
+	elif state == "shield":
+		if absf(velocity.x) > .15:
+			_play_locomotion("ShieldWalk", delta * clampf(absf(velocity.x) / 1.3, .72, 1.35))
+		else:
+			var lift := smoothstep(0.0, .13, age)
+			_pose("SwordBlock", lerpf(.30, .39, lift) + .02 * sin(age * 3.0) * lift)
 	elif state == "slam":
 		# Hold the overhead anticipation while falling. Contact plays the
 		# downward strike (frames 8-11), then compresses the long recovery.
@@ -1336,6 +1405,36 @@ func _install_walk_animation() -> void:
 	library.add_animation("Walk", anim)
 	player.add_animation_library("MIKO8_Walk", library)
 
+func _install_shield_walk() -> void:
+	# Keep the walk's hips and foot timing and layer the braced sword pose above them.
+	var walk := player.get_animation(_clip("Walk")).duplicate(true) as Animation
+	var brace := player.get_animation(_clip("SwordBlock"))
+	var torso := skeleton.find_bone("DEF-spine.001")
+	for track in brace.get_track_count():
+		var path := brace.track_get_path(track)
+		if path.get_subname_count() != 1:
+			continue
+		var bone := skeleton.find_bone(path.get_subname(0))
+		while bone >= 0 and bone != torso:
+			bone = skeleton.get_bone_parent(bone)
+		if bone < 0:
+			continue
+		var type := brace.track_get_type(track)
+		if type != Animation.TYPE_POSITION_3D and type != Animation.TYPE_ROTATION_3D:
+			continue
+		var replace := walk.find_track(path, type)
+		if replace >= 0:
+			walk.remove_track(replace)
+		replace = walk.add_track(type)
+		walk.track_set_path(replace, path)
+		if type == Animation.TYPE_POSITION_3D:
+			walk.position_track_insert_key(replace, 0.0, brace.position_track_interpolate(track, .39))
+		else:
+			walk.rotation_track_insert_key(replace, 0.0, brace.rotation_track_interpolate(track, .39))
+	var library := AnimationLibrary.new()
+	library.add_animation("ShieldWalk", walk)
+	player.add_animation_library("MIKO8_Guard", library)
+
 func _play_locomotion(label: String, delta: float) -> void:
 	var full := _clip(label)
 	if pose_name != full:
@@ -1373,6 +1472,18 @@ func _update_crouch(delta: float, grounded: bool, vertical: float, horizontal: f
 		# Let the locomotion pose take over as soon as movement starts.
 		if absf(horizontal) > .15 or crouch_exit_time >= .39:
 			crouch_exit_time = -1.0
+
+func _update_shield_state(grounded: bool, delta: float) -> void:
+	var held := not automation and Input.is_action_pressed("shield")
+	if not held and shield_hits < SHIELD_CAPACITY:
+		shield_recharge_time = maxf(0.0, shield_recharge_time - delta)
+		if shield_recharge_time == 0.0:
+			shield_hits = SHIELD_CAPACITY
+	var can_guard := held and grounded and not crouched and shield_hits > 0 and not _combat_buffered()
+	if state == "shield" and not can_guard:
+		_change_state("move")
+	elif can_guard and (state in ["move", "laser"] or (state == "parry" and age >= .18)):
+		_change_state("shield")
 
 func _combat_buffered() -> bool:
 	return buffers.jump > 0 or buffers.dash > 0 or buffers.attack > 0 or buffers.parry > 0

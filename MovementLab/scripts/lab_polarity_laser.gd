@@ -102,11 +102,12 @@ func _trace(from: Vector3, to: Vector3) -> Dictionary:
 
 func tick(delta: float, origin: Vector3, direction: Vector3, pole: int) -> void:
 	var space := get_world_3d().direct_space_state
-	ray.from = actor.global_position + Vector3.UP*1.1
+	var shoulder := actor.global_position + Vector3.UP * 1.1
+	ray.from = shoulder
 	ray.to = origin
 	ray.collision_mask = 1
 	var muzzle_hit := space.intersect_ray(ray)
-	if not muzzle_hit.is_empty():
+	if not muzzle_hit.is_empty() and not muzzle_hit.collider.has_method("charge_at"):
 		stop()
 		return
 	var trace_origin := Vector3(origin.x,origin.y,0)
@@ -114,8 +115,10 @@ func tick(delta: float, origin: Vector3, direction: Vector3, pole: int) -> void:
 	if is_instance_valid(locked_target):
 		target_point = locked_target.global_position
 		target_point.z = 0.0
-	var hit := _trace(trace_origin,target_point)
-	start = origin
+	# A crate beside Miko can sit between his shoulder and the beam emitter.
+	# Charge the first surface in that case, just as for a longer beam.
+	var hit := _trace(trace_origin,target_point) if muzzle_hit.is_empty() else muzzle_hit
+	start = origin if muzzle_hit.is_empty() else shoulder
 	end = hit.get("position",target_point)
 	var tint := RED if pole == 1 else BLUE
 	_draw(tint)

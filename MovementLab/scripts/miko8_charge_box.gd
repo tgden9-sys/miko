@@ -29,6 +29,7 @@ var repulsion_count:=0
 var _suit_actor: Node = null
 var _returning_to_ground_lane:=false
 var _lane_collision:KinematicCollision3D
+var _pending_position := Vector3.INF
 
 func _ready()->void:
 	home_position=position
@@ -97,12 +98,30 @@ func _get_suit_actor() -> Node:
 	return _suit_actor
 
 func reset_charge_body()->void:
-	_returning_to_ground_lane=false
-	neutralize();position=home_position;linear_velocity=Vector3.ZERO;angular_velocity=Vector3.ZERO;sleeping=false
-	_suit_actor=null
+	neutralize()
+	move_through_door(home_position)
 	if charge_tween:charge_tween.kill()
 	transition_from=Vector2.ZERO
 	transition_to=Vector2.ZERO
+	_render_charge(1.0)
+
+func move_through_door(destination: Vector3) -> void:
+	_returning_to_ground_lane = false
+	_suit_actor = null
+	_pending_position = destination
+	position = destination
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	constant_force = Vector3.ZERO
+	sleeping = false
+	reset_physics_interpolation()
+
+func restore_charge(pole: int, remaining: float) -> void:
+	polarity = pole
+	charge_remaining = remaining
+	_update_color()
+	transition_to = Vector2(1,0) if pole == 1 else Vector2(0,1)
+	transition_from = transition_to
 	_render_charge(1.0)
 
 func _render_charge(progress:float)->void:
@@ -182,6 +201,15 @@ func neutralize()->void:
 	_animate_charge()
 
 func _integrate_forces(state:PhysicsDirectBodyState3D)->void:
+	if _pending_position != Vector3.INF:
+		# A checkpoint reset can run during a physics step, when the body still
+		# has a transform queued by the solver.
+		var destination := state.transform
+		destination.origin = _pending_position
+		state.transform = destination
+		state.linear_velocity = Vector3.ZERO
+		state.angular_velocity = Vector3.ZERO
+		_pending_position = Vector3.INF
 	if elevated_lane_floor_y<=0.0:return
 	var pose:=state.transform
 	# Clear the deck with the entire crate before moving toward the ground lane.

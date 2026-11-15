@@ -24,12 +24,12 @@ var slam_material: ShaderMaterial
 
 func _ready() -> void:
 	if slam:
-		duration = 0.72
+		duration = 0.55
 		display_slam = MeshInstance3D.new()
 		var quad := QuadMesh.new()
-		quad.size = Vector2(8.0, 3.0)
+		quad.size = Vector2(6.7, 1.45)
 		display_slam.mesh = quad
-		display_slam.position = Vector3(0.0, 1.0, 0.18)
+		display_slam.position = Vector3(0.0, quad.size.y * .4, .06)
 		slam_material = ShaderMaterial.new()
 		slam_material.shader = preload("res://shaders/ground_impact.gdshader")
 		display_slam.material_override = slam_material

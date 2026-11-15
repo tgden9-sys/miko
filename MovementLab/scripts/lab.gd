@@ -13,7 +13,10 @@ var course_title := "MIKO  /  MOVEMENT LAB"
 var course_note := "ANIMATION STUDY * Single sword / aerial combo / uppercut / double jump / ground pound."
 var course_shadows := true
 var course_polarity_controls := false
+var course_electric_shield := false
+var course_zoom_controls := true
 var course_target_model: PackedScene
+var course_spawn_dummy := true
 
 func _ready() -> void:
 	var world := WorldEnvironment.new()
@@ -37,17 +40,19 @@ func _ready() -> void:
 	actor = preload("res://scripts/actor.gd").new()
 	actor.name = "Miko"
 	actor.polarity_controls = course_polarity_controls
+	actor.electric_shield_enabled = course_electric_shield
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--model="): actor.model_path = argument.trim_prefix("--model=")
 	add_child(actor)
 	actor.impact.connect(_impact)
 	actor.attack_effect.connect(_attack_effect)
 	actor.sword_style_changed.connect(_on_sword_style_changed)
-	dummy = preload("res://scripts/agile_droid.gd").new() if course_target_model else preload("res://scripts/dummy.gd").new()
-	dummy.name = "AgileDroid" if course_target_model else "Dummy"
-	dummy.actor = actor
-	dummy.model_scene = course_target_model
-	add_child(dummy)
+	if course_spawn_dummy:
+		dummy = preload("res://scripts/agile_droid.gd").new() if course_target_model else preload("res://scripts/dummy.gd").new()
+		dummy.name = "AgileDroid" if course_target_model else "Dummy"
+		dummy.actor = actor
+		dummy.model_scene = course_target_model
+		add_child(dummy)
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = 9.2
@@ -138,12 +143,12 @@ func _on_sword_style_changed(index: int, s_name: String, desc: String) -> void:
 func reset_room() -> void:
 	for effect: Node in get_tree().get_nodes_in_group("attack_effects"): effect.queue_free()
 	actor.reset()
-	dummy.reset()
+	if dummy and is_instance_valid(dummy): dummy.reset()
 	trauma = 0
 
 func _process(delta: float) -> void:
-	if dummy.arm and Input.is_action_just_pressed("dummy"): dummy.attacking = not dummy.attacking
-	if Input.is_action_just_pressed("zoom"): zoomed = not zoomed
+	if dummy and dummy.arm and Input.is_action_just_pressed("dummy"): dummy.attacking = not dummy.attacking
+	if course_zoom_controls and Input.is_action_just_pressed("zoom"): zoomed = not zoomed
 	if Input.is_physical_key_pressed(KEY_ESCAPE): get_tree().quit()
 	trauma = move_toward(trauma,0,delta*5)
 	_update_camera(delta)

@@ -1,12 +1,15 @@
 shader_type spatial;
 render_mode unshaded;
 #include "res://shaders/miko8_transfer_common.gdshaderinc"
+#include "res://shaders/lab_room_light.gdshaderinc"
 uniform sampler2D base_texture : source_color, filter_linear_mipmap_anisotropic;
 uniform sampler2D metal_rough_texture : filter_linear_mipmap_anisotropic;
 uniform float metallic_factor=1.0;
 uniform float roughness_factor=1.0;
 uniform int polarity=0;
 uniform vec4 scene_tint : source_color=vec4(1.0);
+uniform vec3 red_paint_tint = vec3(0.0);
+uniform vec3 warm_paint_tint = vec3(0.0);
 uniform float scene_roughness_bias=0.0;
 // A single art-directed key prevents overlapping yard lights from adding
 // extra lighting bands. All values below multiply the original suit colours.
@@ -48,6 +51,19 @@ void fragment(){
  vec3 transfer_point=(INV_VIEW_MATRIX*vec4(VERTEX,1.)).xyz;
  if(transfer_progress>0. && transfer_distance(transfer_point)<0.)discard;
  vec3 base=texture(base_texture,UV).rgb;
+ if (red_paint_tint.g > 0.0) {
+     float red_excess = base.r - max(base.g, base.b);
+     float red_mask = smoothstep(0.035, 0.14, red_excess)
+         * smoothstep(0.15, 0.40, red_excess / max(base.r, 0.001));
+     float paint_value = mix(dot(base, vec3(0.30, 0.59, 0.11)), base.r, 0.45);
+     base = mix(base, red_paint_tint * paint_value, red_mask);
+ }
+ if (warm_paint_tint.g > 0.0) {
+     float warmth = max(base.r, base.g) - base.b;
+     float paint_mask = smoothstep(0.06, 0.28, warmth) * smoothstep(0.0, 0.12, base.r - base.b);
+     float paint_value = mix(dot(base, vec3(0.30, 0.59, 0.11)), base.r, 0.30);
+     base = mix(base, warm_paint_tint * paint_value, paint_mask);
+ }
  float dominance=base.g-max(base.r,base.b);
  float mask=smoothstep(0.035,0.15,dominance)*smoothstep(0.06,0.22,base.g);
  vec3 pole=polarity==1?vec3(1.0,0.025,0.045):vec3(0.02,0.32,1.0);
@@ -71,6 +87,12 @@ void fragment(){
      float wrap_light = max(0.0, dot(normalize(world_normal), light_dir) * 0.5 + 0.5);
      vec3 rim = rim_light_color * fresnel * wrap_light * rim_intensity;
      col += base * rim;
+ }
+ if (room_lighting > 0.0) {
+     col *= mix(vec3(1.0), room_light(world_pos), room_lighting * 0.34);
+     if (relay_power > 0.0) {
+         col += relay_spill(world_pos, normalize(world_normal)) * (0.08 + base * 0.31);
+     }
  }
  ALBEDO=transfer_paint(col,transfer_point,NORMAL,VIEW);
 }

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1460 970" width="1460" height="970" role="img" aria-labelledby="title desc">
+  <title id="title">MIKO modular gate and tunnel build sheet</title>
+  <desc id="desc">Dimensioned gate elevation, tunnel plan and installation section for a reusable 3D module. All dimensions are in metres.</desc>
+  <defs>
+    <linearGradient id="steel" x2="1" y2="1">
+      <stop stop-color="#60716e"/><stop offset="1" stop-color="#293b42"/>
+    </linearGradient>
+    <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#17292f"/><path d="M0 0V8" stroke="#344e54" stroke-width="2"/>
+    </pattern>
+    <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse">
+      <path d="M0 0L7 3.5 0 7z" fill="#acc3c1"/>
+    </marker>
+    <style>
+      text {font-family:'Segoe UI',sans-serif;fill:#e5eeea}
+      .title {font-size:37px;font-weight:650}
+      .head {font-size:19px;font-weight:650}
+      .note {font-size:15px;fill:#b4c8c7}
+      .small {font-size:13px;fill:#b4c8c7}
+      .dim {stroke:#acc3c1;stroke-width:1.3;fill:none;marker-start:url(#arrow);marker-end:url(#arrow)}
+      .guide {stroke:#75918f;stroke-width:1;fill:none;stroke-dasharray:4 4}
+      .floor {stroke:#d4bc8e;stroke-width:2}
+      .field {stroke:#71d5ed;stroke-width:3;fill:none}
+      .card {fill:#122024;stroke:#31484d}
+    </style>
+  </defs>
+  <rect width="1460" height="970" fill="#0a1418"/>
+  <text x="42" y="62" class="title">MIKO gate and tunnel</text>
+  <text x="44" y="93" class="note">Reusable Blender build reference   /   1 unit = 1 m</text>
+  <rect x="40" y="122" width="445" height="500" rx="8" class="card"/>
+  <rect x="507" y="122" width="445" height="500" rx="8" class="card"/>
+  <rect x="974" y="122" width="445" height="500" rx="8" class="card"/>
+
+  <text x="63" y="162" class="head">Front elevation</text>
+  <text x="63" y="186" class="small">Looking down the tunnel axis</text>
+  <path d="M119 445V237l30-30h226l30 30v208h-33V258l-15-17H167l-15 17v187z" fill="url(#steel)" stroke="#a0b1a9" stroke-width="2"/>
+  <path d="M152 445V241H372V445" class="guide"/>
+  <path d="M152 445V258l15-17h190l15 17v187z" fill="#53cce9" fill-opacity=".08"/>
+  <path d="M157 405l43-24 22 7 28-57 40 35 24-19 54 12M157 290l42 19 27-18 16 17 37-21 41 18 48-24" class="field" opacity=".65"/>
+  <rect x="239" y="220" width="47" height="6" rx="2" fill="#a6e5ef"/>
+  <path d="M126 251h16m-16 180h16m241-180h16m-16 180h16" stroke="#c3c1a2" stroke-width="4"/>
+  <path d="M106 445H418" class="floor"/>
+  <path d="M152 455v35m220-35v35" class="guide"/>
+  <path d="M152 476H372" class="dim"/>
+  <text x="210" y="469" class="small">2.20 clear width</text>
+  <path d="M91 241V445" class="dim"/>
+  <text transform="translate(82 409) rotate(-90)" class="small">2.04 clear height</text>
+  <path d="M119 497H405" class="dim"/>
+  <text x="211" y="519" class="small">2.86 outer width</text>
+  <text x="63" y="564" class="note">2.38 m frame height with chamfered corners.</text>
+  <text x="63" y="589" class="note">Keep luminaires recessed into the metal.</text>
+
+  <text x="530" y="162" class="head">Plan</text>
+  <text x="530" y="186" class="small">Local +X runs from the entrance into the tunnel</text>
+  <path d="M627 238H879V452H627z" fill="#25383e"/>
+  <path d="M627 238H879V259H627z" fill="url(#steel)"/>
+  <path d="M675 430H879V452H675z" fill="url(#hatch)" stroke="#536e72"/>
+  <path d="M617 238h24v38h-24zm0 176h24v38h-24z" fill="url(#steel)" stroke="#b4bcb1"/>
+  <path d="M629 276V414" class="field"/>
+  <path d="M552 345H861" class="guide"/>
+  <path d="M548 345H604m50 0H867" fill="none" stroke="#d4bc8e" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="629" cy="345" r="5" fill="#fff1bb"/>
+  <path d="M851 265V425" class="guide"/>
+  <text x="657" y="333" class="small">Miko’s travel line</text>
+  <text x="536" y="310" class="small">Origin</text>
+  <path d="M578 315L624 341" class="guide"/>
+  <text x="681" y="477" class="small">Camera-side occluder</text>
+  <path d="M720 465v-18" class="guide"/>
+  <path d="M741 538V488" fill="none" stroke="#acc3c1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="756" y="528" class="small">Camera</text>
+  <path d="M629 215H879" class="dim"/>
+  <text x="703" y="208" class="small">3.20 tunnel depth</text>
+  <text x="530" y="564" class="note">Occluder begins 0.60 m past the field.</text>
+  <text x="530" y="589" class="note">Exit marker at 2.75 m. Confirm in game.</text>
+
+  <text x="997" y="162" class="head">Installation section</text>
+  <text x="997" y="186" class="small">Side view with the near wall removed</text>
+  <path d="M1057 212H1373V271H1057zM1030 447H1373V490H1030z" fill="url(#hatch)"/>
+  <path d="M1056 271h44v-19h273v33h-317z" fill="url(#steel)" stroke="#94a9a6"/>
+  <path d="M1099 285H1373V447H1099z" fill="#1a2b30"/>
+  <path d="M1078 285V447" class="field" stroke-dasharray="5 4"/>
+  <path d="M1030 447H1373" class="floor"/>
+  <path d="M1056 447v10h317v-10" fill="url(#steel)"/>
+  <path d="M1064 270v-18" class="dim"/>
+  <text x="1115" y="242" class="small">0.20 m overlap behind host ceiling</text>
+  <path d="M1128 245L1102 256" class="guide"/>
+  <path d="M1300 300v144" class="guide"/>
+  <text x="1170" y="331" class="small">Exit marker</text>
+  <path d="M1244 334h55" class="guide"/>
+  <text x="1098" y="438" class="small">Flush threshold</text>
+  <text x="997" y="528" class="note">Host ceiling and floor shown hatched.</text>
+  <text x="997" y="564" class="note">Cap both jambs behind the host trim.</text>
+  <text x="997" y="589" class="note">Use 0.20 m overlap at each wall join.</text>
+
+  <rect x="40" y="646" width="1379" height="274" rx="8" class="card"/>
+  <text x="63" y="685" class="head">Blender export and Godot placement</text>
+  <text x="63" y="725" class="note">Origin</text>
+  <text x="175" y="725" class="note">Centre of the threshold at floor height. In Blender, build along +X with +Z up. Godot imports the asset with +Y up.</text>
+  <text x="63" y="763" class="note">Meshes</text>
+  <text x="175" y="763" class="note">Frame, Tunnel and Occluder as separate named objects in one GLB. Keep the portals at the same size for each room.</text>
+  <text x="63" y="801" class="note">Markers</text>
+  <text x="175" y="801" class="note">Place Field at the origin and Exit at X = 2.75 m, both at floor height. Centre the electric effect in the opening at runtime.</text>
+  <text x="63" y="839" class="note">Game logic</text>
+  <text x="175" y="839" class="note">Godot supplies the polarity field, blocker and exit trigger. Anchor collision to the same floor datum as the visible threshold.</text>
+  <text x="63" y="877" class="note">Fit check</text>
+  <text x="175" y="877" class="note">Check the header, both jambs and Miko’s disappearance from the gameplay camera at each exit placement.</text>
+</svg>

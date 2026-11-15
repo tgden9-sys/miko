@@ -5,6 +5,7 @@ const PAINT := preload("res://shaders/lab_paint.gdshader")
 const HALO := preload("res://shaders/lab_halo.gdshader")
 
 static var paint_material: ShaderMaterial
+static var bulkhead_material: ShaderMaterial
 static var lamp_material: StandardMaterial3D
 static var mesh_arrays: Dictionary = {}
 static var cube := BoxMesh.new()
@@ -14,10 +15,26 @@ static var shell := _chamfered_case()
 static var ring := _ring()
 
 var parent: Node3D
+var surface_material: ShaderMaterial
 var batches: Array[Array] = [[], []]
 
-func _init(root: Node3D) -> void:
+func _init(root: Node3D, paint: ShaderMaterial = null) -> void:
 	parent = root
+	surface_material = paint
+
+static func bulkhead_paint() -> ShaderMaterial:
+	if not bulkhead_material:
+		bulkhead_material = ShaderMaterial.new()
+		bulkhead_material.shader = preload("res://shaders/lab_bulkhead_steel.gdshader")
+		bulkhead_material.set_shader_parameter("steel_map",load("res://art/lab_bulkhead_steel.png"))
+	return bulkhead_material
+
+static func deck_paint() -> ShaderMaterial:
+	if not paint_material:
+		paint_material = ShaderMaterial.new()
+		paint_material.shader = PAINT
+		paint_material.set_shader_parameter("wear_map",load("res://art/lab_weathered_metal.png"))
+	return paint_material
 
 static func _cylinder() -> CylinderMesh:
 	var mesh := CylinderMesh.new()
@@ -75,10 +92,6 @@ func _part(mesh: Mesh, at: Vector3, size: Vector3, color: Color, lit: bool, rota
 	batches[int(lit)].append([mesh, Transform3D(basis, at), color])
 
 func finish() -> void:
-	if not paint_material:
-		paint_material = ShaderMaterial.new()
-		paint_material.shader = PAINT
-		paint_material.set_shader_parameter("wear_map", load("res://art/lab_weathered_metal.png"))
 	if not lamp_material:
 		lamp_material = StandardMaterial3D.new()
 		lamp_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -91,7 +104,10 @@ func finish() -> void:
 			continue
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-		surface.set_material(paint_material if index == 0 else lamp_material)
+		if index == 0:
+			surface.set_material(surface_material if surface_material else deck_paint())
+		else:
+			surface.set_material(lamp_material)
 		var vertex_offset := 0
 		for part: Array in batches[index]:
 			var source: Mesh = part[0]

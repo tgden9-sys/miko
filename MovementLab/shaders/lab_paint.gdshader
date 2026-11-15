@@ -1,5 +1,6 @@
 shader_type spatial;
 render_mode unshaded;
+#include "res://shaders/lab_room_light.gdshaderinc"
 
 uniform sampler2D wear_map : filter_linear_mipmap, repeat_enable;
 varying vec3 world_position;
@@ -24,4 +25,10 @@ void fragment() {
 	float oxidation = clamp((surface.r - surface.g + 0.006) * 5.0, 0.0, 0.6);
 	vec3 paint = COLOR.rgb * light_level * (0.56 + patina * 1.24);
 	ALBEDO = mix(paint, paint * vec3(1.24, 0.78, 0.51), oxidation);
+	if (room_lighting > 0.0) {
+		ALBEDO *= mix(vec3(1.0), room_light(world_position), room_lighting);
+		if (relay_power > 0.0) {
+			ALBEDO += relay_spill(world_position, normalize(world_normal)) * (0.11 + paint * 0.42);
+		}
+	}
 }

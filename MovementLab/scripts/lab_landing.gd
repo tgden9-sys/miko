@@ -6,6 +6,8 @@ const UNDERSIDE := Color("222d35")
 const STEEL := Color("4b5355")
 const CAP := Color("97938a")
 
+var surface_material: ShaderMaterial
+
 @export_range(1.0, 15.0, 0.1, "or_greater") var width := 2.0:
 	set(value):
 		width = value
@@ -34,7 +36,7 @@ func _rebuild() -> void:
 	var skin := Node3D.new()
 	skin.name = "Skin"
 	add_child(skin)
-	var kit := Kit.new(skin)
+	var kit := Kit.new(skin,surface_material)
 	kit.box(Vector3(0,-.065,0),Vector3(width,.13,3.7),CAP)
 	kit.box(Vector3(0,-.245,0),Vector3(width-.06,.23,3.54),UNDERSIDE)
 	kit.box(Vector3(0,-.22,1.79),Vector3(width-.24,.19,.13),STEEL)

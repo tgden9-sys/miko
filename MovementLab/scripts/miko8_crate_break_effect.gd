@@ -1,117 +1,288 @@
 extends Node3D
-## Textured pieces of the actual crate; cosmetic debris never blocks the actor.
-var push_direction:=Vector3.RIGHT
-var hit_point:=Vector3.ZERO
-var energy_tint:=Color("d5a1ff")
-var impact_strength:=1.0
-var pieces:Array[Dictionary]=[]
-var splinters:MultiMesh
-var splinter_data:Array[Dictionary]=[]
-var dust:MultiMesh
-var dust_data:Array[Dictionary]=[]
-var elapsed:=0.0
-var flash:OmniLight3D
-var shock_ring:MeshInstance3D
-var rng:=RandomNumberGenerator.new()
-func _ready()->void:
-	name="WoodenCrateBreak";add_to_group("miko8_crate_debris");rng.randomize()
-	if impact_strength>=1.0:
-		get_tree().call_group("miko8_impact_feedback","crate_impact_feedback")
-	var source:Node3D=preload("res://models/props/wooden_crate_broken.glb").instantiate();add_child(source)
-	for piece:MeshInstance3D in source.find_children("*","MeshInstance3D",true,false):
-		var relative:Vector3=source.transform*piece.transform.origin
-		var radial:Vector3=(relative-Vector3(0,.4,0)).normalized()
-		var impulse:=radial*rng.randf_range(1.4,3.0)+push_direction*2.0+Vector3.UP*rng.randf_range(2.0,3.8)
-		impulse*=impact_strength
-		pieces.append({"node":piece,"velocity":impulse,"spin":Vector3(rng.randf_range(-6,6),rng.randf_range(-6,6),rng.randf_range(-6,6)),"base_scale":piece.scale})
-	var wood:=StandardMaterial3D.new();wood.albedo_color=Color("88603a");wood.roughness=.95
-	var sliver:=BoxMesh.new();sliver.size=Vector3(.025,.14,.018);sliver.material=wood
-	splinters=_batch(sliver,28)
-	for index in range(28):
-		splinter_data.append({"p":Vector3(rng.randf_range(-.3,.3),rng.randf_range(.15,.7),rng.randf_range(-.3,.3)),"v":Vector3(rng.randf_range(-3.8,3.8),rng.randf_range(2.2,6.2),rng.randf_range(-1.6,1.6))+push_direction*2.,"axis":Vector3(rng.randf(),rng.randf(),rng.randf()).normalized(),"phase":rng.randf()*TAU})
-	var smoke:=QuadMesh.new();smoke.size=Vector2.ONE
-	var gradient:=Gradient.new();gradient.set_color(0,Color(1,1,1,.30));gradient.set_color(1,Color(1,1,1,0))
-	var texture:=GradientTexture2D.new();texture.gradient=gradient;texture.width=64;texture.height=64
-	texture.fill=GradientTexture2D.FILL_RADIAL;texture.fill_from=Vector2(.5,.5);texture.fill_to=Vector2(1,.5)
-	var dust_mat:=StandardMaterial3D.new();dust_mat.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-	dust_mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;dust_mat.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED
-	dust_mat.albedo_texture=texture;dust_mat.vertex_color_use_as_albedo=true;smoke.material=dust_mat
-	dust=_batch(smoke,16)
-	for index in range(16):
-		dust_data.append({"p":Vector3(rng.randf_range(-.3,.3),rng.randf_range(.08,.65),rng.randf_range(-.2,.2)),"v":Vector3(rng.randf_range(-.7,.7),rng.randf_range(.2,.8),rng.randf_range(-.3,.3)),"size":rng.randf_range(.25,.5)})
-	shock_ring=MeshInstance3D.new()
-	var torus:=TorusMesh.new();torus.inner_radius=0.06;torus.outer_radius=0.10;torus.rings=20;torus.ring_segments=6
-	shock_ring.mesh=torus
-	var ring_mat:=StandardMaterial3D.new();ring_mat.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-	ring_mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;ring_mat.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
-	ring_mat.albedo_color=energy_tint;shock_ring.material_override=ring_mat
-	shock_ring.position=hit_point;shock_ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(shock_ring)
-	flash=OmniLight3D.new();flash.light_color=energy_tint;flash.light_energy=1.8*impact_strength;flash.omni_range=3.0*impact_strength
-	flash.position=hit_point;flash.shadow_enabled=false;add_child(flash)
-	_sound()
-	get_tree().call_group("miko8_cel_art","convert_debris",self)
-func _batch(mesh:Mesh,count:int)->MultiMesh:
-	var visual:=MultiMeshInstance3D.new();var batch:=MultiMesh.new()
-	batch.transform_format=MultiMesh.TRANSFORM_3D;batch.use_colors=true;batch.mesh=mesh;batch.instance_count=count
-	batch.custom_aabb=AABB(Vector3(-10,-18,-5),Vector3(20,26,10));visual.multimesh=batch
-	visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(visual)
-	for index in range(count):batch.set_instance_transform(index,Transform3D(Basis.IDENTITY.scaled(Vector3.ZERO),Vector3.ZERO))
-	return batch
-func _sound()->void:
-	var stream:=AudioStreamWAV.new();stream.format=AudioStreamWAV.FORMAT_16_BITS;stream.mix_rate=22050
-	var data:=PackedByteArray();data.resize(7718*2)
-	for index in range(7718):
-		var t:=float(index)/22050.
-		var crack:=rng.randf_range(-1,1)*exp(-t*48.)*.6
-		var thud:=sin(TAU*(120.-t*80.)*t)*exp(-t*22.)*.4
-		var rattle:=rng.randf_range(-1,1)*exp(-t*13.)*.12*(.5+.5*sin(t*260.))
-		data.encode_s16(index*2,int(clampf(crack+thud+rattle,-1,1)*26000.))
-	stream.data=data
-	var sound:=AudioStreamPlayer.new();sound.stream=stream;sound.volume_db=-12;add_child(sound);sound.play()
-func _physics_process(delta:float)->void:
-	elapsed+=delta
-	if elapsed>1.45:queue_free();return
-	flash.light_energy=1.8*impact_strength*pow(maxf(0,1.-elapsed/.12),2)
-	if is_instance_valid(shock_ring) and elapsed<0.26:
-		var st:=elapsed/0.26
-		var s_scale:=lerpf(0.4,2.6,1.0-pow(1.0-st,3.0))*impact_strength
-		shock_ring.scale=Vector3(s_scale,s_scale*0.4,s_scale)
-		(shock_ring.material_override as StandardMaterial3D).albedo_color.a=(1.0-st)*0.9
-	elif is_instance_valid(shock_ring):
-		shock_ring.visible=false
-	var shrink:=1.-smoothstep(.65,1.45,elapsed)
-	for record:Dictionary in pieces:
-		var node:MeshInstance3D=record.node
-		var previous:=node.global_position
-		record.velocity.y-=12.*delta;node.position+=record.velocity*delta
-		var support:=_surface_below(previous,node.global_position,.08)
-		if not support.is_empty():
-			node.global_position.y=support.position.y+.08
-			record.velocity.y=absf(record.velocity.y)*.24 if absf(record.velocity.y)>.65 else 0.
-			record.velocity.x*=exp(-5.*delta);record.velocity.z*=exp(-5.*delta);record.spin*=exp(-6.*delta)
-		var spin:Vector3=record.spin
-		if spin.length()>.001:node.rotate(spin.normalized(),spin.length()*delta)
-		node.scale=record.base_scale*shrink
-	for index in range(splinter_data.size()):
-		var record:Dictionary=splinter_data[index]
-		var previous:Vector3=to_global(record.p)
-		record.v.y-=12.*delta;record.p+=record.v*delta
-		var support:=_surface_below(previous,to_global(record.p),.02)
-		if not support.is_empty():
-			record.p=to_local(support.position+Vector3.UP*.02);record.v=Vector3.ZERO
-		var basis:=Basis(record.axis,record.phase+elapsed*9.).scaled(Vector3.ONE*shrink)
-		splinters.set_instance_transform(index,Transform3D(basis,record.p))
-	for index in range(dust_data.size()):
-		var record:Dictionary=dust_data[index];record.p+=record.v*delta
-		var size:float=record.size*(1.+elapsed*2.2)
-		dust.set_instance_transform(index,Transform3D(Basis.IDENTITY.scaled(Vector3.ONE*size),record.p))
-		dust.set_instance_color(index,Color(.55,.42,.27,maxf(0,1.-elapsed/1.1)))
+## Reusable cosmetic burst prepared with the crate, including its first render.
 
-func _surface_below(previous:Vector3,current:Vector3,clearance:float)->Dictionary:
-	if current.y>=previous.y:return {}
-	# Sweep against actual floors/roofs. The crate's spawn height is not a floor.
-	var ray:=PhysicsRayQueryParameters3D.create(previous,current-Vector3.UP*clearance,1)
-	var hit:=get_world_3d().direct_space_state.intersect_ray(ray)
-	if not hit.is_empty() and hit.normal.y>.5:return hit
+const FRAGMENTS := preload("res://models/props/wooden_crate_broken.glb")
+const SPLINTER_COUNT := 28
+const DUST_COUNT := 16
+const LIFETIME := 1.45
+
+static var sliver_mesh: BoxMesh
+static var smoke_mesh: QuadMesh
+static var ring_mesh: TorusMesh
+static var break_sound: AudioStreamWAV
+
+var pieces: Array[MeshInstance3D] = []
+var rests: Array[Transform3D] = []
+var velocity := PackedVector3Array()
+var spin := PackedVector3Array()
+var splinters: MultiMesh
+var splinter_position := PackedVector3Array()
+var splinter_velocity := PackedVector3Array()
+var splinter_axis := PackedVector3Array()
+var splinter_phase := PackedFloat32Array()
+var splinter_settled: Array[bool] = []
+var dust: MultiMesh
+var dust_position := PackedVector3Array()
+var dust_velocity := PackedVector3Array()
+var dust_size := PackedFloat32Array()
+var flash: MeshInstance3D
+var flash_material: ShaderMaterial
+var shock_ring: MeshInstance3D
+var ring_material: StandardMaterial3D
+var sound: AudioStreamPlayer
+var elapsed := 0.0
+var strength := 1.0
+var rng := RandomNumberGenerator.new()
+var floor_ray := PhysicsRayQueryParameters3D.new()
+
+func _ready() -> void:
+	_prepare_assets()
+	var source := FRAGMENTS.instantiate()
+	add_child(source)
+	for piece: MeshInstance3D in source.find_children("*","MeshInstance3D",true,false):
+		pieces.append(piece)
+		rests.append(piece.transform)
+	velocity.resize(pieces.size())
+	spin.resize(pieces.size())
+	splinters = _batch(sliver_mesh,SPLINTER_COUNT)
+	splinter_position.resize(SPLINTER_COUNT)
+	splinter_velocity.resize(SPLINTER_COUNT)
+	splinter_axis.resize(SPLINTER_COUNT)
+	splinter_phase.resize(SPLINTER_COUNT)
+	splinter_settled.resize(SPLINTER_COUNT)
+	dust = _batch(smoke_mesh,DUST_COUNT)
+	dust_position.resize(DUST_COUNT)
+	dust_velocity.resize(DUST_COUNT)
+	dust_size.resize(DUST_COUNT)
+	shock_ring = MeshInstance3D.new()
+	shock_ring.mesh = ring_mesh
+	shock_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ring_material = StandardMaterial3D.new()
+	ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	shock_ring.material_override = ring_material
+	add_child(shock_ring)
+	flash = MeshInstance3D.new()
+	flash.mesh = smoke_mesh
+	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	flash_material = ShaderMaterial.new()
+	flash_material.shader = preload("res://shaders/lab_halo.gdshader")
+	flash.material_override = flash_material
+	add_child(flash)
+	sound = AudioStreamPlayer.new()
+	sound.stream = break_sound
+	sound.volume_db = -12.0
+	add_child(sound)
+	floor_ray.collision_mask = 1
+	rng.randomize()
+	stop()
+
+static func _prepare_assets() -> void:
+	if sliver_mesh:
+		return
+	var wood := StandardMaterial3D.new()
+	wood.albedo_color = Color("88603a")
+	wood.roughness = .95
+	sliver_mesh = BoxMesh.new()
+	sliver_mesh.size = Vector3(.025,.14,.018)
+	sliver_mesh.material = wood
+
+	var gradient := Gradient.new()
+	gradient.set_color(0,Color(1,1,1,.30))
+	gradient.set_color(1,Color(1,1,1,0))
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.width = 64
+	texture.height = 64
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(.5,.5)
+	texture.fill_to = Vector2(1,.5)
+	var smoke := StandardMaterial3D.new()
+	smoke.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	smoke.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	smoke.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	smoke.albedo_texture = texture
+	smoke.vertex_color_use_as_albedo = true
+	smoke_mesh = QuadMesh.new()
+	smoke_mesh.size = Vector2.ONE
+	smoke_mesh.material = smoke
+
+	ring_mesh = TorusMesh.new()
+	ring_mesh.inner_radius = .06
+	ring_mesh.outer_radius = .10
+	ring_mesh.rings = 20
+	ring_mesh.ring_segments = 6
+
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 61423
+	var data := PackedByteArray()
+	data.resize(7718*2)
+	for index in range(7718):
+		var t := float(index)/22050.0
+		var crack := noise.randf_range(-1,1)*exp(-t*48.0)*.6
+		var thud := sin(TAU*(120.0-t*80.0)*t)*exp(-t*22.0)*.4
+		var rattle := noise.randf_range(-1,1)*exp(-t*13.0)*.12*(.5+.5*sin(t*260.0))
+		data.encode_s16(index*2,int(clampf(crack+thud+rattle,-1,1)*26000.0))
+	break_sound = AudioStreamWAV.new()
+	break_sound.format = AudioStreamWAV.FORMAT_16_BITS
+	break_sound.mix_rate = 22050
+	break_sound.data = data
+
+static func warm_up(level: Node) -> void:
+	if not is_instance_valid(level) or not level.is_inside_tree() or level.has_node("CrateBreakWarmup"):
+		return
+	if DisplayServer.get_name() == "headless":
+		return
+	# The compatibility renderer first compiles these materials when they draw.
+	# Render a burst once in a tiny private viewport while the room opens.
+	var preview := SubViewport.new()
+	preview.name = "CrateBreakWarmup"
+	preview.size = Vector2i(64,64)
+	preview.own_world_3d = true
+	preview.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	level.add_child(preview)
+	var camera := Camera3D.new()
+	camera.position = Vector3(0,.55,2.5)
+	preview.add_child(camera)
+	var key := DirectionalLight3D.new()
+	key.rotation_degrees = Vector3(-55,-30,0)
+	key.shadow_enabled = level.get("course_shadows") == true
+	preview.add_child(key)
+	var effect := new()
+	preview.add_child(effect)
+	effect._start(Vector3(0,.4,0),Vector3.RIGHT,Color("ffaa5e"),1.0)
+	for index in range(2):
+		await RenderingServer.frame_post_draw
+		if not is_instance_valid(preview):
+			return
+	preview.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	preview.queue_free()
+
+func _batch(mesh: Mesh, count: int) -> MultiMesh:
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_3D
+	batch.use_colors = true
+	batch.mesh = mesh
+	batch.instance_count = count
+	batch.custom_aabb = AABB(Vector3(-10,-18,-5),Vector3(20,26,10))
+	var visual := MultiMeshInstance3D.new()
+	visual.multimesh = batch
+	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(visual)
+	return batch
+
+func burst(point: Vector3, direction: Vector3, tint: Color, impact: float) -> void:
+	_start(point,direction,tint,impact)
+	add_to_group("miko8_crate_debris")
+	sound.pitch_scale = rng.randf_range(.94,1.06)
+	sound.play()
+	set_physics_process(true)
+
+func _start(point: Vector3, direction: Vector3, tint: Color, impact: float) -> void:
+	elapsed = 0.0
+	strength = impact
+	for index in range(pieces.size()):
+		var piece := pieces[index]
+		piece.transform = rests[index]
+		var radial := (to_local(piece.global_position)-Vector3(0,.4,0)).normalized()
+		velocity[index] = (radial*rng.randf_range(1.4,3.0)+direction*2.0+Vector3.UP*rng.randf_range(2.0,3.8))*strength
+		spin[index] = Vector3(rng.randf_range(-6,6),rng.randf_range(-6,6),rng.randf_range(-6,6))
+	for index in range(SPLINTER_COUNT):
+		splinter_position[index] = Vector3(rng.randf_range(-.3,.3),rng.randf_range(.15,.7),rng.randf_range(-.3,.3))
+		splinter_velocity[index] = Vector3(rng.randf_range(-3.8,3.8),rng.randf_range(2.2,6.2),rng.randf_range(-1.6,1.6))+direction*2.0
+		splinter_axis[index] = Vector3(rng.randf(),rng.randf()+.01,rng.randf()).normalized()
+		splinter_phase[index] = rng.randf()*TAU
+		splinter_settled[index] = false
+		splinters.set_instance_transform(index,Transform3D(Basis(splinter_axis[index],splinter_phase[index]),splinter_position[index]))
+		splinters.set_instance_color(index,Color.WHITE)
+	for index in range(DUST_COUNT):
+		dust_position[index] = Vector3(rng.randf_range(-.3,.3),rng.randf_range(.08,.65),rng.randf_range(-.2,.2))
+		dust_velocity[index] = Vector3(rng.randf_range(-.7,.7),rng.randf_range(.2,.8),rng.randf_range(-.3,.3))
+		dust_size[index] = rng.randf_range(.25,.5)
+		_shade_dust(index,1.0)
+	shock_ring.position = point
+	shock_ring.scale = Vector3(.4,.16,.4)*strength
+	shock_ring.show()
+	ring_material.albedo_color = tint
+	flash.position = point+Vector3(0,0,.4)
+	flash.scale = Vector3(1.3,1.05,1.0)*strength
+	flash_material.set_shader_parameter("light_color",tint)
+	flash_material.set_shader_parameter("energy",.60*strength)
+	flash.show()
+	show()
+
+func stop() -> void:
+	set_physics_process(false)
+	hide()
+	sound.stop()
+	if is_in_group("miko8_crate_debris"):
+		remove_from_group("miko8_crate_debris")
+
+func _physics_process(delta: float) -> void:
+	elapsed += delta
+	if elapsed >= LIFETIME:
+		stop()
+		return
+	if flash.visible:
+		flash_material.set_shader_parameter("energy",.60*strength*pow(maxf(0,1.0-elapsed/.12),2.0))
+		flash.visible = elapsed < .12
+	if shock_ring.visible:
+		var age := minf(elapsed/.26,1.0)
+		var size := lerpf(.4,2.6,1.0-pow(1.0-age,3.0))*strength
+		shock_ring.scale = Vector3(size,size*.4,size)
+		ring_material.albedo_color.a = (1.0-age)*.9
+		shock_ring.visible = age < 1.0
+
+	var shrink := 1.0-smoothstep(.65,LIFETIME,elapsed)
+	var space := get_world_3d().direct_space_state
+	for index in range(pieces.size()):
+		var piece := pieces[index]
+		var previous := piece.global_position
+		var motion := velocity[index] + Vector3.DOWN*12.0*delta
+		piece.position += motion*delta
+		var surface := _surface_below(space,previous,piece.global_position,.08)
+		if not surface.is_empty():
+			piece.global_position.y = surface.position.y+.08
+			motion.y = absf(motion.y)*.24 if absf(motion.y) > .65 else 0.0
+			var damping := exp(-5.0*delta)
+			motion.x *= damping
+			motion.z *= damping
+			spin[index] *= exp(-6.0*delta)
+		velocity[index] = motion
+		var rotation := spin[index]
+		if rotation.length_squared() > .000001:
+			piece.rotate(rotation.normalized(),rotation.length()*delta)
+		piece.scale = rests[index].basis.get_scale()*shrink
+	for index in range(SPLINTER_COUNT):
+		if not splinter_settled[index]:
+			var previous := to_global(splinter_position[index])
+			splinter_velocity[index] += Vector3.DOWN*12.0*delta
+			splinter_position[index] += splinter_velocity[index]*delta
+			var surface := _surface_below(space,previous,to_global(splinter_position[index]),.02)
+			if not surface.is_empty():
+				splinter_position[index] = to_local(surface.position+Vector3.UP*.02)
+				splinter_phase[index] += elapsed*9.0
+				splinter_settled[index] = true
+		var angle := splinter_phase[index] if splinter_settled[index] else splinter_phase[index]+elapsed*9.0
+		var basis := Basis(splinter_axis[index],angle).scaled(Vector3.ONE*shrink)
+		splinters.set_instance_transform(index,Transform3D(basis,splinter_position[index]))
+	for index in range(DUST_COUNT):
+		dust_position[index] += dust_velocity[index]*delta
+		_shade_dust(index,maxf(0,1.0-elapsed/1.1))
+
+func _shade_dust(index: int, opacity: float) -> void:
+	var size := dust_size[index]*(1.0+elapsed*2.2)
+	dust.set_instance_transform(index,Transform3D(Basis.IDENTITY.scaled(Vector3.ONE*size),dust_position[index]))
+	dust.set_instance_color(index,Color(.55,.42,.27,opacity))
+
+func _surface_below(space: PhysicsDirectSpaceState3D, previous: Vector3, current: Vector3, clearance: float) -> Dictionary:
+	if current.y >= previous.y:
+		return {}
+	# Sweep against the real platforms so shards can fall between floors.
+	floor_ray.from = previous
+	floor_ray.to = current-Vector3.UP*clearance
+	var hit := space.intersect_ray(floor_ray)
+	if not hit.is_empty() and hit.normal.y > .5:
+		return hit
 	return {}

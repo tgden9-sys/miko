@@ -29,6 +29,9 @@ var wave_spawn_index := 0
 var wave_spawn_total := 0
 var wave_active := false
 var audio_suite: CanvasLayer
+var relay_charge := 0.0
+var relay_transition_pending := false
+var next_level_path := "res://lab_level_2.tscn"
 
 func _ready() -> void:
 	course_title = "MIKO   /   WAKE LAB"
@@ -54,7 +57,7 @@ func _ready() -> void:
 	add_child(step_fx)
 	audio_suite = preload("res://scripts/audio_suite_ui.gd").new()
 	add_child(audio_suite)
-	dummy.home = Vector3(32,6,0)
+	if dummy: dummy.home = Vector3(32,6,0)
 	_spawn_extra_droids()
 	_spawn_crates()
 	reset_room()
@@ -190,7 +193,10 @@ func _build_ui() -> void:
 	suite_btn.pressed.connect(func(): if audio_suite: audio_suite.toggle_suite())
 	layer.add_child(suite_btn)
 	_hud_plate(layer,Vector2(34,975),Vector2(1270,75))
-	_hud_text(layer,Vector2(54,986),"B  Jump    A  Dash    Y  Sword    X  Parry    Down  Crouch / Look below    View  Reset    R3  Close view",18,Color("e8ebe4"))
+	var movement_controls := "B  Jump    A  Dash    Y  Sword    X  Parry    Down  Crouch / Look below    View  Reset"
+	if course_zoom_controls:
+		movement_controls += "    R3  Close view"
+	_hud_text(layer,Vector2(54,986),movement_controls,18,Color("e8ebe4"))
 	_hud_text(layer,Vector2(54,1015),"LT  Red laser    RT  Blue laser    LB  Charge red    RB  Charge blue    Right stick  Aim",15,Color("b7c4c4"))
 	_hud_plate(layer,Vector2(1324,975),Vector2(562,75))
 	style_banner = _hud_text(layer,Vector2(1345,989),"",17,Color("8bdad1"))
@@ -226,6 +232,7 @@ func _on_sword_style_changed(index: int, style_name: String, _description: Strin
 	style_banner.text = "%02d / 10    %s" % [index+1,style_name.to_upper()]
 
 func reset_room() -> void:
+	relay_charge = 0.0
 	super.reset_room()
 	actor.position = CHECKPOINTS[checkpoint_room]
 	if step_fx: step_fx.clear()
@@ -302,6 +309,8 @@ func _update_status() -> void:
 		direction_hint.text = "DEFEND NETWORK RELAY  /  HOSTILES: %d" % alive_wave
 	else:
 		direction_hint.text = ROOM_HINTS[active_room]
+	if absf(actor.position.x-90.0) < 1.6 and absf(actor.position.y) < .3:
+		direction_hint.text = "Stand on node for Level 2  /  %d%%" % int(relay_charge*100)
 	diagnostics.text = "L%d  /  HP %d  /  %s  /  %d FPS" % [clampi(int((actor.position.y+.2)/6),0,2),actor.health,["NEUTRAL","RED","BLUE"][actor.suit_polarity],Engine.get_frames_per_second()]
 
 
@@ -322,6 +331,7 @@ func _build_contact_shadow() -> void:
 	add_child(contact_shadow)
 
 func _physics_process(delta: float) -> void:
+	_update_network_transfer(delta)
 	_update_wave_spawner(delta)
 	var foot := actor.global_position
 	shadow_query.from = foot + Vector3.UP * .06
@@ -350,13 +360,16 @@ func _update_wave_spawner(delta: float) -> void:
 	if actor.health <= 0 or actor.position.x < 68.0:
 		return
 
-	wave_droids = wave_droids.filter(func(d: CharacterBody3D) -> bool: return is_instance_valid(d))
+	var valid_droids: Array[CharacterBody3D] = []
 	var alive_count := 0
 	for d in wave_droids:
-		if is_instance_valid(d) and d.health > 0 and d.mode != d.Mode.DOWN:
-			alive_count += 1
+		if is_instance_valid(d):
+			valid_droids.append(d)
+			if d.health > 0 and d.mode != d.Mode.DOWN:
+				alive_count += 1
+	wave_droids = valid_droids
 
-	if alive_count < MAX_WAVE_DROIDS:
+	if alive_count < MAX_WAVE_DROIDS and wave_spawn_total < MAX_WAVE_DROIDS:
 		wave_spawn_timer += delta
 		var spawn_rate := 1.0 if alive_count < 4 else 1.6
 		if wave_spawn_timer >= spawn_rate:
@@ -390,4 +403,24 @@ func _spawn_wave_droid() -> void:
 	d.run_speed_multiplier = randf_range(0.88, 1.05)
 	add_child(d)
 	wave_droids.append(d)
+
+
+func _update_network_transfer(delta: float) -> void:
+	var relay := get_node_or_null("Dressing/NetworkRelaySocket")
+	if not relay or next_level_path.is_empty(): return
+	var near := absf(actor.position.x - relay.position.x) < .85 and absf(actor.position.y - relay.position.y) < .2
+	var standing: bool = near and actor.is_on_floor() and actor.health > 0 and absf(actor.velocity.x) < .5
+	relay_charge = move_toward(relay_charge, 1.0 if standing else 0.0, delta / 1.6 if standing else delta * 3.0)
+	relay.update_effect(delta, relay_charge, relay_charge, standing)
+	if near: direction_hint.text = "Stand on the node to transfer to Level 2  /  %d%%" % int(relay_charge * 100)
+	if relay_charge >= 1.0 and not relay_transition_pending:
+		relay_transition_pending = true
+		_finish_network_transfer.call_deferred()
+
+func _finish_network_transfer() -> void:
+	var error := get_tree().change_scene_to_file(next_level_path)
+	if error != OK:
+		relay_transition_pending = false
+		relay_charge = 0.0
+		push_error("Network transfer failed: %s" % error)
 
