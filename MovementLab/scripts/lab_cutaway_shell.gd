@@ -2,6 +2,12 @@ extends Node3D
 
 var layout = preload("res://scripts/lab_cutaway_layout.gd")
 var metal_tint := Color.WHITE
+var finished_edges := false
+var authored_details := false
+var show_exit_reveal := true
+var extra_door_reveals: Array[Vector3] = []
+var vents: Array = []
+var depth_tint := Color.WHITE
 const Kit := preload("res://scripts/lab_art_kit.gd")
 var trim: ShaderMaterial
 
@@ -33,6 +39,8 @@ func _ready() -> void:
 			collision.shape = shape
 			body.add_child(collision)
 			add_child(body)
+			if finished_edges:
+				continue
 			var lining := MeshInstance3D.new()
 			var solid_mesh := BoxMesh.new()
 			solid_mesh.size = Vector3(width,layout.CELL,3.30)
@@ -47,6 +55,17 @@ func _ready() -> void:
 			lining.position.z = -1.0
 			lining.material_override = trim
 			body.add_child(lining)
+	if finished_edges:
+		var finish := preload("res://scripts/lab_cutaway_finish.gd").new()
+		finish.layout = layout
+		finish.metal_tint = metal_tint
+		finish.authored_details = authored_details
+		finish.show_exit_reveal = show_exit_reveal
+		finish.extra_door_reveals = extra_door_reveals
+		finish.vents = vents
+		finish.depth_tint = depth_tint
+		add_child(finish)
+		return
 	# Foreground includes the tunnel cheeks, while physics keeps the passages open.
 	for row in range(rows):
 		var column := 0
@@ -98,6 +117,7 @@ func _ready() -> void:
 				var x: float = layout.BOUNDS.position.x+(column+(1 if side > 0 else 0))*layout.CELL
 				var y: float = layout.BOUNDS.position.y+start*layout.CELL
 				_edge(edge_surface,kit,Vector2(x,y),Vector2(0,(row-start)*layout.CELL),side)
+
 	var edging := MeshInstance3D.new()
 	edging.mesh = edge_surface.commit()
 	edging.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

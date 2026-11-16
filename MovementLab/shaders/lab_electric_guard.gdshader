@@ -1,66 +1,95 @@
 shader_type spatial;
-render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, fog_disabled;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never, fog_disabled;
 
 uniform float strength : hint_range(0.0, 1.0) = 0.0;
 uniform float direction_sign = 1.0;
 uniform float hit_age = 1.0;
 uniform float impact_height = 0.0;
+uniform float impact_side = 1.0;
 uniform float cells = 3.0;
 
-float contour(vec2 p) {
-	float side = max(p.x - 0.94, -p.x - 0.8);
-	float chamfer = max(p.x + abs(p.y) * 0.94 - 1.40, -p.x + abs(p.y) * 0.53 - 1.10);
-	return max(abs(p.y) - 0.90, max(side, chamfer * 0.79));
+// Regular hexagonal tiling (pointy-topped)
+// Period: (sqrt(3), 1.0) with offset (sqrt(3)/2, 0.5)
+vec4 hex_tiling(vec2 p) {
+	vec2 s = vec2(1.7320508, 1.0);
+	vec2 h = vec2(0.8660254, 0.5);
+	vec2 a = mod(p, s) - h;
+	vec2 b = mod(p - h, s) - h;
+	vec2 gv = dot(a, a) < dot(b, b) ? a : b;
+	vec2 id = p - gv;
+	return vec4(gv.x, gv.y, id.x, id.y);
+}
+
+// Exact distance from center of pointy-topped hexagon to edge (edge at d = 0.5)
+float hex_distance(vec2 p) {
+	p = abs(p);
+	return max(p.y, 0.8660254 * p.x + 0.5 * p.y);
 }
 
 void fragment() {
-	vec2 p = (UV - 0.5) * 2.0;
-	p.x *= direction_sign;
-	float y = -p.y / 0.83;
-	float bend = 0.10 - 0.18 * y * y + 0.10 * y;
-	vec2 face = vec2((p.x - bend) / 0.52, y);
-	float shape = contour(face);
-	float aa = max(fwidth(shape) * 0.66, 0.008);
-	float mask = 1.0 - smoothstep(-aa, aa, shape);
-	float front = smoothstep(-0.52, 0.49, face.x);
-	float border = 1.0 - smoothstep(0.010, 0.037 + aa, abs(shape + 0.019));
-	float bevel = (1.0 - smoothstep(0.009, 0.025 + aa, abs(shape + 0.106))) * front;
-	float haze = exp(-abs(shape) * 18.0) * (0.075 + 0.13 * front);
-	float facet = smoothstep(-0.24, -0.08, face.x + face.y * 0.26);
-	float sweep = exp(-pow((face.y - face.x * 0.32 - sin(TIME * 0.78) * 0.68) * 9.0, 2.0));
-	float glass = mask * (0.095 + 0.082 * facet + 0.045 * sweep);
+	// Delicate, silky Fresnel rim glow
+	float ndotv = abs(dot(NORMAL, VIEW));
+	float fresnel = pow(1.0 - ndotv, 3.2);
+	float rim = pow(1.0 - ndotv, 1.8) * 0.18;
 
-	// Charge travels along the forward bevel. The hit starts where the bolt struck.
-	float current = pow(0.5 + 0.5 * sin(face.y * 17.2 - TIME * 4.2), 8.0) * bevel;
-	vec2 delta = (face - vec2(0.80, impact_height)) * vec2(1.0, 1.24);
-	float distance_to_hit = length(delta);
-	float flash_time = 1.0 - smoothstep(0.014, 0.17, hit_age);
-	float hit_core = exp(-distance_to_hit * 13.0) * flash_time;
-	float shock = exp(-pow((distance_to_hit - hit_age * 6.2) * 15.0, 2.0));
-	float wave = shock * mask * (1.0 - smoothstep(0.045, 0.29, hit_age));
-	float angle = atan(delta.y, delta.x);
-	float jets = pow(0.5 + 0.5 * sin(angle * 5.0 + 1.3), 20.0) * exp(-distance_to_hit * 3.6);
-	jets *= flash_time * smoothstep(0.02, 0.096, distance_to_hit);
-	float overload = (1.0 - step(0.5, cells)) * flash_time;
-	float rim_flash = border * exp(-abs(face.y - impact_height) * 2.3) * flash_time;
+	// Seamless hex grid wrapping across UV
+	vec2 grid_p = vec2(UV.x * 17.3205, UV.y * 11.5);
+	vec4 hex_data = hex_tiling(grid_p);
+	vec2 local_p = hex_data.xy;
+	vec2 cell_id = hex_data.zw;
 
-	float nodes = 0.0;
-	float extinguished = 0.0;
+	float d = hex_distance(local_p);
+
+	// Thin, razor-sharp hex wireframe lines
+	// d goes from 0.0 (center) to 0.50 (outer edge)
+	float border = smoothstep(0.44, 0.485, d);
+	float core_wire = smoothstep(0.47, 0.495, d);
+	float cell_interior = 1.0 - smoothstep(0.38, 0.45, d);
+
+	// Very subtle kinetic breathing shimmer per cell
+	float cell_phase = sin(TIME * 2.0 + cell_id.x * 1.8 + cell_id.y * 2.4) * 0.5 + 0.5;
+	float kinetic_glass = cell_interior * (0.015 + 0.025 * cell_phase);
+
+	// Thin, elegant charge indicator bands (3 battery cells)
+	float cell_band = 0.0;
+	float dim_band = 0.0;
 	for (int i = 0; i < 3; i++) {
-		float row = float(i - 1) * 0.36;
-		vec2 offset = face - vec2(0.71, row);
-		offset.x += offset.y * (row * 0.48);
-		float bar = max(abs(offset.x) - .073, abs(offset.y) - .035);
-		float cell = 1.0 - smoothstep(-0.009, max(aa, 0.02), bar);
-		float lit = step(float(i) + 0.5, cells);
-		nodes += cell * lit;
-		extinguished += cell * (1.0 - lit);
+		float band_y = 0.42 + float(i) * 0.075;
+		float dist_y = abs(UV.y - band_y);
+		float ring = exp(-dist_y * 110.0);
+		ring *= (0.8 + 0.2 * sin(UV.x * 17.3205 * 0.5 + TIME * 3.0));
+		if (float(i) + 0.5 < cells) {
+			cell_band += ring * 0.35;
+		} else {
+			dim_band += ring * 0.08;
+		}
 	}
-	vec3 glass_color = mix(vec3(0.055, 0.32, 0.43), vec3(0.12, 0.66, 0.77), facet);
-	vec3 edge_color = mix(vec3(0.23, 0.75, 0.83), vec3(0.80, 1.0, 0.98), front);
-	float highlights = clamp(border * 0.74 + bevel * 0.35 + current * 0.42 + nodes, 0.0, 1.0);
-	vec3 surface = mix(glass_color, edge_color, highlights);
-	surface = mix(surface, vec3(.10, .32, .39), extinguished * 0.6);
-	ALBEDO = mix(surface, vec3(.92, 1.0, .98), clamp(hit_core + wave * .75 + rim_flash + jets + overload * .36, 0.0, 1.0));
-	ALPHA = clamp(glass + border * (0.31 + 0.44 * front) + bevel * 0.33 + current * 0.32 + haze + nodes * 0.88 + extinguished * 0.40 + wave * 0.5 + hit_core + jets * 0.65 + rim_flash * 0.5, 0.0, 1.0) * strength;
+
+	// Dynamic impact shockwave
+	float flash_time = 1.0 - smoothstep(0.0, 0.35, hit_age);
+	vec2 impact_uv = vec2(0.5 + impact_side * 0.25, 0.5 - impact_height * 0.45);
+	float dist_to_hit = length((UV - impact_uv) * vec2(1.0, 1.4));
+	float shock_radius = hit_age * 4.2;
+	float shock = exp(-pow((dist_to_hit - shock_radius) * 14.0, 2.0)) * flash_time;
+	float hit_core = exp(-dist_to_hit * 8.0) * flash_time * 1.4;
+	float impact_hex_boost = border * exp(-dist_to_hit * 3.5) * flash_time * 1.2;
+
+	// Palette: Electric Cyan, Deep Azure, Crisp Core White
+	vec3 deep_azure = vec3(0.02, 0.38, 0.88);
+	vec3 electric_cyan = vec3(0.14, 0.90, 1.0);
+	vec3 core_white = vec3(0.92, 0.99, 1.0);
+
+	// Color composition
+	vec3 col = mix(deep_azure, electric_cyan, fresnel * 0.8 + kinetic_glass * 4.0);
+	col = mix(col, electric_cyan, border * 0.9);
+	col = mix(col, core_white, clamp(core_wire * 0.85 + hit_core + shock * 0.6 + cell_band * 0.5 + impact_hex_boost, 0.0, 1.0));
+
+	// Halved opacity: ultra-delicate, clear, and subtle
+	float alpha = (fresnel * 0.38 + rim * 0.15 + kinetic_glass
+	            + border * 0.32 + core_wire * 0.25
+	            + cell_band + dim_band
+	            + hit_core * 1.0 + shock * 0.5 + impact_hex_boost) * 0.5;
+
+	ALBEDO = col;
+	ALPHA = clamp(alpha, 0.0, 1.0) * strength;
 }

@@ -114,10 +114,12 @@ func _spawn_crates() -> void:
 	# Wooden Crates: 15 total across the levels
 	# Breakable wooden crates (.8 x .8 x .8), matching metal crate dimensions
 	var wood_spawns: Array[Dictionary] = [
-		# Floor 0
-		{"pos": Vector3(11, 0.0, 0), "settle": false},
-		{"pos": Vector3(14, 0.0, 0), "settle": false},
-		{"pos": Vector3(14, 0.8, 0), "settle": true},                # Double stack at x=14
+		# Floor 0: Level 1 Wooden Crate Barricade (5 crates)
+		{"pos": Vector3(14.0, 0.0, 0), "settle": false},
+		{"pos": Vector3(14.0, 0.8, 0), "settle": true},
+		{"pos": Vector3(14.0, 1.6, 0), "settle": true},
+		{"pos": Vector3(14.0, 2.4, 0), "settle": true},
+		{"pos": Vector3(14.8, 0.0, 0), "settle": false},
 		{"pos": Vector3(34, 0.0, 0), "settle": false},
 		{"pos": Vector3(48, 0.0, 0), "settle": false},
 		# Floor 1 (y=6.0)

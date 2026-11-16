@@ -14,7 +14,6 @@ var precharged: bool
 var progress_key: StringName
 var hint_layer: CanvasLayer
 var crate: SlidingCrate
-var dock_lamp: ShaderMaterial
 var sound: AudioStreamPlayer3D
 var prompt: PanelContainer
 var text: Label
@@ -39,7 +38,6 @@ func _ready() -> void:
 	reset()
 	if get_tree().get_meta(progress_key, false):
 		crate.restore_at_stop(home.y)
-		_update_dock_lamp(true)
 
 func reset() -> void:
 	if crate.at_stop:
@@ -50,12 +48,8 @@ func reset() -> void:
 
 func _on_docking_changed(seated: bool) -> void:
 	get_tree().set_meta(progress_key, seated)
-	_update_dock_lamp(seated)
 	if seated:
 		sound.play()
-
-func _update_dock_lamp(seated: bool) -> void:
-	dock_lamp.set_shader_parameter("tint", Color("b6edba") if seated else Color("e0b366"))
 
 func _physics_process(_delta: float) -> void:
 	var p := actor.global_position
@@ -88,13 +82,6 @@ func _build_track() -> void:
 		_add_rail(kit, start, corner)
 		_add_rail(kit, corner, seat)
 		kit.box(Vector3(stop_x, home.y + .024, z * 1.20), Vector3(.85, .045, .052), Color("758380"))
-	var stop := Vector3(stop_x + side * .23, home.y, .52)
-	kit.plate(stop + Vector3(0, .075, 0), Vector3(.46, .15, .25), Color("3e4b4d"))
-	kit.plate(stop + Vector3(0, .18, 0), Vector3(.25, .24, .18), Color("a58b43"))
-	dock_lamp = ShaderMaterial.new()
-	dock_lamp.shader = preload("res://shaders/lab_service_lamp.gdshader")
-	dock_lamp.set_shader_parameter("tint", Color("e0b366"))
-	kit.quad(stop + Vector3(0, .175, .098), Vector2(.17, .048), dock_lamp)
 	kit.finish()
 
 func _add_rail(kit: Kit, start: Vector3, end: Vector3) -> void:

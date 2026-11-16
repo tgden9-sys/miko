@@ -20,6 +20,7 @@ const DASH_SPEED := 17.5
 const DASH_TIME := 0.15
 const SHIELD_CAPACITY := 3
 const SHIELD_RECHARGE := 2.75
+const SHIELD_DEPLETED_COOLDOWN := 4.0
 const SHIELD_WALK_SPEED := 1.75
 const ElectricGuard := preload("res://scripts/lab_electric_guard.gd")
 const CROUCH_ENTER_TIME := 0.18
@@ -496,7 +497,7 @@ func _physics_process(delta: float) -> void:
 		laser_pole = requested if state == "laser" else 0
 		if laser_pole != 0:
 			_update_laser_direction()
-	var can_cancel := not crouched and state not in ["hit", "death"] and (state == "move" or (state == "attack" and age >= _active_end()) or (state == "parry" and age > .20))
+	var can_cancel := not crouched and state not in ["hit", "death"] and (state in ["move", "shield"] or (state == "attack" and age >= _active_end()) or (state == "parry" and age > .20))
 	if can_cancel and buffers.dash > 0 and dash_cooldown <= 0 and (grounded or not air_dash_used):
 		buffers.dash = 0.0
 		if absf(axis) > .15: facing = 1 if axis > 0 else -1
@@ -517,7 +518,7 @@ func _physics_process(delta: float) -> void:
 		_change_state("move")
 		grounded = false
 		action_started.emit("jump" if jumps == 1 else "double jump")
-	if state == "move" and not crouched and buffers.attack > 0:
+	if (state in ["move", "shield"]) and not crouched and buffers.attack > 0:
 		buffers.attack = 0.0
 		if vertical < -.45 and not grounded:
 			_change_state("slam")
@@ -541,7 +542,7 @@ func _physics_process(delta: float) -> void:
 			air_hang_left = maxf(0,air_hang_left-delta)
 		velocity.y -= gravity*delta
 	match state:
-		"move":
+		"move", "shield":
 			var acceleration := (ACCEL if absf(axis) > .15 else BRAKE) if grounded else AIR_ACCEL
 			velocity.x = move_toward(velocity.x, axis*(.9 if crouched else SPEED), acceleration*delta)
 		"laser":
@@ -597,9 +598,6 @@ func _physics_process(delta: float) -> void:
 		"parry":
 			velocity.x = move_toward(velocity.x, 0.0, BRAKE*delta)
 			if age >= .34: _change_state("move")
-		"shield":
-			var pace := axis * SHIELD_WALK_SPEED if absf(axis) > .15 else 0.0
-			velocity.x = move_toward(velocity.x, pace, (28.0 if pace != 0.0 else BRAKE) * delta)
 		"slam":
 			velocity.x = 0
 			if slam_landed:
@@ -831,13 +829,16 @@ func _strike(slam := false) -> void:
 	query.shape = shape
 	query.transform.origin = global_position + (Vector3(0,.55,0) if slam else Vector3(facing*.9,1.0,0))
 	query.collision_mask = 5
+	var strike_origin := global_position + Vector3.UP * .8
 	for result: Dictionary in get_world_3d().direct_space_state.intersect_shape(query, 8):
 		var target: Node3D = result.collider
 		if target in struck or not target.has_method("receive_hit"): continue
 		var point := target.global_position+Vector3.UP*.9
-		if target.has_method("get_hit_point"):
+		if target is WoodenCrate:
+			point = target.sword_contact_point(strike_origin)
+		elif target.has_method("get_hit_point"):
 			point = target.get_hit_point()
-		var ray := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP*.8, point, 1, [target.get_rid()])
+		var ray := PhysicsRayQueryParameters3D.create(strike_origin, point, 1, [target.get_rid()])
 		if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): continue
 		struck.append(target)
 		var launch := 8.5 if attack_kind == "launcher" else (4.0 if slam else (3.0 if attack_in_air else 0.0))
@@ -867,16 +868,18 @@ func _strike(slam := false) -> void:
 			sfx.play_contact(imp)
 
 func _absorb_with_shield(from_x: float, contact := Vector3.INF) -> bool:
-	if state != "shield" or shield_hits == 0 or (from_x - global_position.x) * facing <= 0.0:
+	if state != "shield" or shield_hits == 0:
 		return false
 	shield_hits -= 1
-	shield_recharge_time = SHIELD_RECHARGE
-	electric_guard.absorb(shield_hits, contact)
 	if shield_hits == 0:
+		shield_recharge_time = SHIELD_DEPLETED_COOLDOWN
 		_change_state("move")
+	else:
+		shield_recharge_time = SHIELD_RECHARGE
+	electric_guard.absorb(shield_hits, contact)
 	return true
 
-func receive_attack(from_x: float) -> bool:
+func receive_attack(from_x: float, damage := 10) -> bool:
 	if state in ["dash", "death"] or invulnerable > 0: return false
 	if _absorb_with_shield(from_x): return false
 	var frontal := (from_x - global_position.x) * facing > 0.0
@@ -888,7 +891,7 @@ func receive_attack(from_x: float) -> bool:
 		if sfx:
 			sfx.play_parry()
 		return true
-	health = maxi(0, health-10)
+	health = maxi(0, health-damage)
 	hitstop = .08
 	invulnerable = 0.40
 	impact.emit(global_position+Vector3.UP, .35)
@@ -909,7 +912,7 @@ func _start_hit(hit_dir: int) -> void:
 	_change_state("hit")
 	velocity.x = hit_dir * 1.5
 	velocity.y = 0.0
-	crouched = false
+	_set_crouched(false)
 	crouch_time = 0.0
 	crouch_exit_time = -1.0
 	action_started.emit("hit")
@@ -920,7 +923,7 @@ func _start_death(hit_dir: int) -> void:
 	_change_state("death")
 	velocity.x = hit_dir * 2.2
 	velocity.y = 1.6
-	crouched = false
+	_set_crouched(false)
 	crouch_time = 0.0
 	crouch_exit_time = -1.0
 	action_started.emit("death")
@@ -950,7 +953,7 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 	
 	# Procedural spine/torso banking (Prince of Persia style lean)
 	var target_lean := 0.0
-	if state in ["attack", "parry", "shield", "slam", "hit", "death"]:
+	if state in ["attack", "parry", "slam", "hit", "death"]:
 		target_lean = 0.0
 	elif state == "dash":
 		target_lean = -float(facing) * 0.14
@@ -994,12 +997,6 @@ func _animate(delta: float, axis: float = 0.0) -> void:
 		# then play a shortened return instead of waiting 1.23 seconds.
 		var t := lerpf(0,.16,age/.025) if age < .025 else (lerpf(.16,.56,(age-.025)/.145) if age < .17 else lerpf(.56,1.23,(age-.17)/.17))
 		_pose("SwordBlock",t)
-	elif state == "shield":
-		if absf(velocity.x) > .15:
-			_play_locomotion("ShieldWalk", delta * clampf(absf(velocity.x) / 1.3, .72, 1.35))
-		else:
-			var lift := smoothstep(0.0, .13, age)
-			_pose("SwordBlock", lerpf(.30, .39, lift) + .02 * sin(age * 3.0) * lift)
 	elif state == "slam":
 		# Hold the overhead anticipation while falling. Contact plays the
 		# downward strike (frames 8-11), then compresses the long recovery.
@@ -1475,7 +1472,11 @@ func _update_crouch(delta: float, grounded: bool, vertical: float, horizontal: f
 
 func _update_shield_state(grounded: bool, delta: float) -> void:
 	var held := not automation and Input.is_action_pressed("shield")
-	if not held and shield_hits < SHIELD_CAPACITY:
+	if shield_hits == 0:
+		shield_recharge_time = maxf(0.0, shield_recharge_time - delta)
+		if shield_recharge_time == 0.0:
+			shield_hits = SHIELD_CAPACITY
+	elif not held and shield_hits < SHIELD_CAPACITY:
 		shield_recharge_time = maxf(0.0, shield_recharge_time - delta)
 		if shield_recharge_time == 0.0:
 			shield_hits = SHIELD_CAPACITY

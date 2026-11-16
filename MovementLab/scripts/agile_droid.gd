@@ -37,6 +37,9 @@ var always_pursue := false
 var is_wave_droid := false
 var custom_health := 0
 var run_speed_multiplier := 1.0
+const PERSISTENCE_DURATION := 3.5
+var persistence_timer := 0.0
+var last_known_pos := Vector3.ZERO
 
 func _ready() -> void:
 	super._ready()
@@ -146,6 +149,8 @@ func reset() -> void:
 	facing = 1
 	patrol_direction = 1
 	attack_cooldown = 0.0
+	persistence_timer = 0.0
+	last_known_pos = Vector3.ZERO
 	current_clip = ""
 	struck = false
 	body.position = Vector3.ZERO
@@ -192,29 +197,69 @@ func _physics_process(delta: float) -> void:
 					facing = patrol_direction
 					speed = facing * PATROL_SPEED
 			Mode.APPROACH:
-				if not _sees_miko():
+				var can_see := _sees_miko()
+				if can_see:
+					persistence_timer = PERSISTENCE_DURATION
+					last_known_pos = actor.position
+				else:
+					persistence_timer = maxf(0.0, persistence_timer - delta)
+				
+				if persistence_timer <= 0.0:
 					_enter(Mode.PATROL)
 				else:
-					facing = 1 if actor.position.x > position.x else -1
-					var dist_x: float = absf(actor.position.x - position.x)
-					var dist_y: float = absf(actor.position.y - position.y)
-					if dist_x < 1.85 and dist_y < .65:
+					var target_x: float = actor.position.x if can_see else last_known_pos.x
+					var target_y: float = actor.position.y if can_see else last_known_pos.y
+					if absf(target_x - position.x) > 0.15:
+						facing = 1 if target_x > position.x else -1
+					
+					var dist_x: float = absf(target_x - position.x)
+					var dy: float = target_y - position.y
+					var dist_y: float = absf(dy)
+					var miko_above: bool = dy > 0.45 and dy < 2.5
+					var miko_below: bool = dy < -0.8
+					
+					# Level 2 step scenario: Miko is up a step facing droid
+					if miko_above and dist_x < 2.4:
+						if attack_cooldown <= 0.0:
+							if is_on_floor() and jump_cooldown <= 0.0:
+								velocity.y = JUMP_VELOCITY
+								velocity.x = facing * RUN_SPEED * 1.15
+								jump_cooldown = 0.55
+							_enter(Mode.WINDUP)
+						else:
+							speed = facing * RUN_SPEED * run_speed_multiplier
+							if is_on_floor() and jump_cooldown <= 0.0:
+								velocity.y = JUMP_VELOCITY
+								velocity.x = facing * RUN_SPEED * 1.15
+								jump_cooldown = 0.55
+					# Normal ground attack
+					elif dist_x < 1.85 and dist_y < .65:
 						if attack_cooldown <= 0.0:
 							_enter(Mode.WINDUP)
 						else:
 							speed = 0.0
 					else:
 						speed = facing * RUN_SPEED * run_speed_multiplier
-						if is_on_floor() and jump_cooldown <= 0.0 and _should_jump_obstacle():
-							velocity.y = JUMP_VELOCITY
-							jump_cooldown = 0.55
+						if is_on_floor() and jump_cooldown <= 0.0:
+							# Level 5 descent shaft: jump down to follow Miko
+							if miko_below and _should_jump_down_ledge():
+								velocity.y = 2.8
+								velocity.x = facing * RUN_SPEED * 1.35
+								jump_cooldown = 0.55
+							elif miko_above or _should_jump_obstacle():
+								velocity.y = JUMP_VELOCITY
+								velocity.x = facing * RUN_SPEED * 1.15
+								jump_cooldown = 0.55
 			Mode.WINDUP:
-				speed = move_toward(velocity.x, 0.0, delta * 12.0)
+				if not is_on_floor():
+					speed = facing * RUN_SPEED * 0.95
+				else:
+					speed = move_toward(velocity.x, 0.0, delta * 12.0)
 				if elapsed >= WINDUP:
 					_enter(Mode.SWIPE)
 			Mode.SWIPE:
-				if elapsed < 0.14:
-					speed = facing * LUNGE_SPEED
+				if elapsed < 0.16:
+					speed = facing * (LUNGE_SPEED * 1.25 if not is_on_floor() else LUNGE_SPEED)
 				else:
 					speed = move_toward(velocity.x, 0.0, delta * 14.0)
 				if elapsed >= .06 and not struck:
@@ -246,42 +291,68 @@ func _physics_process(delta: float) -> void:
 func _should_jump_obstacle() -> bool:
 	var space := get_world_3d().direct_space_state
 	var self_rid := get_rid()
-	var chest_pos := global_position + Vector3.UP * 1.55
-	var chest_target := chest_pos + Vector3(float(facing) * 1.35, 0.0, 0.0)
-	var chest_query := PhysicsRayQueryParameters3D.create(chest_pos, chest_target, 1, [self_rid])
-	var chest_hit := space.intersect_ray(chest_query)
-	# If chest/head height is blocked, it's a tall wall or double stack — cannot clear with single jump
-	if not chest_hit.is_empty():
-		return false
-	
 	# Check knee/box height directly ahead
 	var knee_pos := global_position + Vector3.UP * 0.45
-	var knee_target := knee_pos + Vector3(float(facing) * 1.35, 0.0, 0.0)
+	var knee_target := knee_pos + Vector3(float(facing) * 1.25, 0.0, 0.0)
 	var knee_query := PhysicsRayQueryParameters3D.create(knee_pos, knee_target, 1, [self_rid])
 	var knee_hit := space.intersect_ray(knee_query)
-	return not knee_hit.is_empty()
+	if knee_hit.is_empty():
+		return false
+	
+	# Check ceiling overhang clearance
+	var head_pos := global_position + Vector3.UP * 1.95
+	var head_target := head_pos + Vector3(float(facing) * 0.9, 0.0, 0.0)
+	var head_query := PhysicsRayQueryParameters3D.create(head_pos, head_target, 1, [self_rid])
+	var head_hit := space.intersect_ray(head_query)
+	if not head_hit.is_empty() and actor.position.y <= position.y:
+		return false
+	
+	return true
+
+func _should_jump_down_ledge() -> bool:
+	var space := get_world_3d().direct_space_state
+	var self_rid := get_rid()
+	# Probe floor ahead in the facing direction
+	var probe_x := global_position + Vector3(float(facing) * 0.75, 0.15, 0.0)
+	var probe_down := probe_x + Vector3.DOWN * 2.2
+	var query := PhysicsRayQueryParameters3D.create(probe_x, probe_down, 1, [self_rid])
+	var hit := space.intersect_ray(query)
+	# If there is no floor within 2.2m below probe point, a drop/shaft is directly ahead
+	return hit.is_empty()
 
 func _sees_miko() -> bool:
 	if actor.health <= 0:
 		return false
 	if always_pursue:
 		return true
-	if absf(actor.position.x-position.x) > SIGHT_RANGE or absf(actor.position.y-position.y) > 2.2:
+	var dx := absf(actor.position.x - position.x)
+	var dy := actor.position.y - position.y
+	# Check horizontal sight range
+	if dx > SIGHT_RANGE:
 		return false
-	var query := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP, actor.global_position+Vector3.UP, 1, [get_rid()])
+	# Check vertical sight range:
+	# Miko can be up a step/deck (up to 4.5m) or down a shaft/drop (up to 12.0m!)
+	if dy > 4.5 or dy < -12.0:
+		return false
+	var eye_pos := global_position + Vector3.UP * 1.3
+	var target_pos := actor.global_position + Vector3.UP * 1.0
+	var query := PhysicsRayQueryParameters3D.create(eye_pos, target_pos, 1, [get_rid()])
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return true
-	# If the ray hit a single obstacle (like a crate) below 1.2m, Miko is visible above it
-	if hit.collider and is_instance_valid(hit.collider) and hit.position.y < global_position.y + 1.2:
+	# If ray hit an obstacle near feet or crate height, target is visible
+	if hit.collider and is_instance_valid(hit.collider) and hit.position.y < global_position.y + 1.25:
+		return true
+	# If Miko is below and ray hit near ledge lip, can see over ledge
+	if dy < -1.0 and hit.position.y < eye_pos.y - 0.2:
 		return true
 	return false
 
 func _strike() -> void:
-	var offset := actor.global_position-global_position
-	if offset.x*facing < 0 or absf(offset.x) > 2.0 or absf(offset.y) > 1.1:
+	var offset := actor.global_position - global_position
+	if offset.x * facing < 0 or absf(offset.x) > 2.2 or absf(offset.y) > 2.2:
 		return
-	var query := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP, actor.global_position+Vector3.UP, 1)
+	var query := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.9, actor.global_position + Vector3.UP * 0.9, 1)
 	if not get_world_3d().direct_space_state.intersect_ray(query).is_empty():
 		return
 	if actor.receive_attack(global_position.x):

@@ -58,6 +58,15 @@ func _physics_process(delta: float) -> void:
 		fall_speed += 9.8 * delta
 		global_position.y = maxf(0.0, global_position.y - fall_speed * delta)
 
+func sword_contact_point(attacker: Vector3) -> Vector3:
+	# End the obstruction ray just inside the struck face. The crate's base is
+	# its origin, so the generic enemy target sits above the lid of a crate.
+	var local := to_local(attacker)
+	return to_global(Vector3(
+		clampf(local.x, -CRATE_WIDTH * .5 + .035, CRATE_WIDTH * .5 - .035),
+		clampf(local.y, .06, CRATE_HEIGHT - .06),
+		clampf(local.z, -CRATE_DEPTH * .5 + .035, CRATE_DEPTH * .5 - .035)))
+
 func receive_hit(_amount: int, direction: int, _lift: float) -> void:
 	_break_crate(global_position + Vector3.UP * (CRATE_HEIGHT * 0.5), Vector3(float(direction), 0.35, 0.0).normalized(), Color("ffaa5e"), 1.0)
 

@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode unshaded, cull_disabled, blend_add, depth_draw_never, shadows_disabled;
 uniform vec4 pole_color : source_color = vec4(0.22,0.57,1.0,1.0);
 uniform float field_strength : hint_range(0.0,1.0) = 1.0;
+uniform bool recessed = false;
+uniform bool blue_polarity = false;
 
 float hash(float v) { return fract(sin(v*127.1+17.7)*43758.5453); }
 float noise(float x,float seed) {
@@ -31,7 +33,21 @@ void fragment() {
 		+filament(uv,.50,53.0,-TIME*1.1)*second
 		+filament(uv,.80,97.0,TIME*1.7)*third;
 	float edge_light=exp(-edge*46.0)*.42;
+	if (recessed) {
+		vec2 corner=max(abs(uv-0.5)-vec2(.437,.433),vec2(0.0));
+		border*=1.0-smoothstep(.061,.069,length(corner));
+		skin*=.64;
+		edge_light*=.88;
+		arcs*=1.14;
+	}
 	float release=smoothstep(0.0,.8,field_strength);
-	ALBEDO=mix(pole_color.rgb,vec3(.78,.9,1.0),clamp(arcs*.8,0.0,.55));
+	vec3 arc_core=vec3(.78,.9,1.0);
+	if (blue_polarity) {
+		// Carry the polarity through the quiet parts of the field and the bright arcs.
+		skin*=3.0;
+		edge_light*=1.60;
+		arc_core=vec3(.20,.49,1.0);
+	}
+	ALBEDO=mix(pole_color.rgb,arc_core,clamp(arcs*.8,0.0,.55));
 	ALPHA=(skin+edge_light+arcs*1.35)*border*release;
 }

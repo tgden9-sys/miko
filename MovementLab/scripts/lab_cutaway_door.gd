@@ -4,12 +4,20 @@ const TUNNEL := preload("res://models/props/lab_tunnel_interior.glb")
 const TUNNEL_PAINT := preload("res://shaders/lab_tunnel_finish.gdshader")
 const MOUNT_PAINT := preload("res://shaders/lab_door_metal.gdshader")
 const STEEL_MAP := preload("res://art/lab_bulkhead_steel.png")
+const RECESSED_FIELD_DEPTH := -.285
+const ELECTRODE_HEIGHTS := [.43, 1.075, 1.72]
 var finishes: Array[ShaderMaterial] = []
 var previous_field_power := -1.0
 var metal_tint := Color.WHITE
+var textured_portal := false
 var metal_shutter := false
 var service_shutter: Node3D
 var service_open := false
+
+func field_color() -> Color:
+	if not sealed and pole == Pole.BLUE:
+		return Color("2c75ff")
+	return super.field_color()
 
 func _process(delta: float) -> void:
 	super._process(delta)
@@ -61,6 +69,7 @@ func _build_frame(portal: Node3D) -> void:
 			paint.set_shader_parameter("steel_map",STEEL_MAP)
 			paint.set_shader_parameter("field_color",field_color())
 			paint.set_shader_parameter("metal_tint",metal_tint)
+			paint.set_shader_parameter("textured_portal",textured_portal)
 			if arrival and not sealed:
 				paint.set_shader_parameter("field_power",0.0)
 			mesh.set_surface_override_material(index,paint)
@@ -74,6 +83,17 @@ func _contour(half: float, bottom: float, top: float, bevel: float, depth: float
 		Vector3(half-bevel,top,depth),Vector3(-half+bevel,top,depth),
 		Vector3(-half,top-bevel,depth),Vector3(-half,bottom+bevel,depth)])
 
+func _rounded_contour(half_width: float, bottom: float, top: float, radius: float, depth: float) -> PackedVector3Array:
+	var outline := PackedVector3Array()
+	var corners := [Vector2(half_width-radius,bottom+radius),Vector2(half_width-radius,top-radius),
+		Vector2(-half_width+radius,top-radius),Vector2(-half_width+radius,bottom+radius)]
+	for corner in range(corners.size()):
+		for step in range(7):
+			var angle := (float(corner)-1.0+float(step)/6.0)*PI*.5
+			var point: Vector2 = corners[corner]+Vector2.from_angle(angle)*radius
+			outline.append(Vector3(point.x,point.y,depth))
+	return outline
+
 func _build_mount(portal: Node3D) -> void:
 	# The mounting flange fits the shell's 2.5 m opening, behind its Z=.66 cut face.
 	# Eight continuous rings give the mouth real bevels, a gasket and an inset throat.
@@ -82,6 +102,7 @@ func _build_mount(portal: Node3D) -> void:
 	material.set_shader_parameter("steel_map",STEEL_MAP)
 	material.set_shader_parameter("field_color",field_color())
 	material.set_shader_parameter("metal_tint",metal_tint)
+	material.set_shader_parameter("textured_portal",textured_portal)
 	if metal_shutter or (arrival and not sealed):
 		material.set_shader_parameter("field_power",0.0)
 	finishes.append(material)
@@ -96,19 +117,36 @@ func _build_mount(portal: Node3D) -> void:
 		_contour(1.10,.025,2.07,.18,-.82)]
 	var colors := [Color("263437"),Color("65726f"),Color("354449"),
 		Color("111a1e"),Color("657873"),Color("42585d"),Color("17282e")]
+	if textured_portal:
+		# Cast surround, exposed machined lip, a recessed gasket and a stepped tunnel liner.
+		profiles = [
+			_rounded_contour(1.47,-.035,2.53,.25,-.72),
+			_rounded_contour(1.47,-.035,2.53,.25,.015),
+			_rounded_contour(1.425,-.023,2.48,.23,.068),
+			_rounded_contour(1.36,-.008,2.416,.22,.105),
+			_rounded_contour(1.27,.006,2.33,.19,.105),
+			_rounded_contour(1.235,.012,2.29,.17,.049),
+			_rounded_contour(1.204,.019,2.255,.16,.037),
+			_rounded_contour(1.204,.019,2.255,.16,-.091),
+			_rounded_contour(1.114,.028,2.16,.15,-.23),
+			_rounded_contour(1.114,.028,2.16,.15,-.43),
+			_rounded_contour(1.19,.016,2.23,.16,-.81)]
+		colors = [Color("283438"),Color("384649"),Color("657370"),Color("465257"),Color("68726b"),
+			Color("1a2225"),Color("111b20"),Color("4e6266"),Color("374b52"),Color("1b2a30")]
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	surface.set_material(material)
 	for band in range(profiles.size()-1):
-		for edge in range(8):
-			var next := (edge+1)%8
+		surface.set_smooth_group(band if textured_portal else -1)
+		var edge_count: int = profiles[band].size()
+		for edge in range(edge_count):
+			var next := (edge+1)%edge_count
 			var a: Vector3 = profiles[band][edge]
 			var b: Vector3 = profiles[band][next]
 			var c: Vector3 = profiles[band+1][next]
 			var d: Vector3 = profiles[band+1][edge]
 			for vertex: Vector3 in [a,c,b,a,d,c]:
 				surface.set_color(colors[band])
-				surface.set_smooth_group(-1)
 				surface.add_vertex(vertex)
 	surface.generate_normals()
 	var mount := MeshInstance3D.new()
@@ -116,6 +154,9 @@ func _build_mount(portal: Node3D) -> void:
 	mount.mesh = surface.commit()
 	mount.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	portal.add_child(mount)
+	if textured_portal and not metal_shutter:
+		_build_textured_hardware(portal,material)
+		return
 	var detail := Kit.new(portal,material)
 	# End the visible passage in shadow. The player continues behind the cut wall.
 	if not metal_shutter:
@@ -141,6 +182,30 @@ func _build_mount(portal: Node3D) -> void:
 	detail.finish()
 	if metal_shutter:
 		_build_metal_shutter(portal,material)
+
+func _build_textured_hardware(portal: Node3D, material: ShaderMaterial) -> void:
+	var kit := Kit.new(portal,material)
+	kit.box(Vector3(0,1.15,-2.34),Vector3(2.6,2.32,.035),Color("07090a"))
+	for side: float in [-1.0,1.0]:
+		kit.plate(Vector3(side*1.114,1.075,-.225),Vector3(.095,1.86,.13),Color("1e2a30"))
+		kit.plate(Vector3(side*1.145,1.075,-.143),Vector3(.062,1.90,.039),Color("5e6d6d"))
+		for y: float in ELECTRODE_HEIGHTS:
+			kit.plate(Vector3(side*1.102,y,-.197),Vector3(.115,.155,.175),Color("637272"))
+			kit.plate(Vector3(side*1.079,y,-.102),Vector3(.088,.097,.029),Color("24343a"))
+			for offset: float in [-.052,.052]:
+				kit.plate(Vector3(side*1.10,y+offset,-.108),Vector3(.105,.021,.036),Color("7c8680"))
+		for y: float in [.25,1.21,2.145]:
+			kit.cylinder(Vector3(side*1.315,y,.106),Vector3(.082,.015,.082),Color("1b282b"),Vector3(PI*.5,0,0))
+			kit.cylinder(Vector3(side*1.315,y,.118),Vector3(.043,.017,.043),Color("77817a"),Vector3(PI*.5,0,0))
+	kit.plate(Vector3(0,2.372,.116),Vector3(.76,.10,.034),Color("1d292e"))
+	for side: float in [-1.0,1.0]:
+		for slot in range(3):
+			kit.plate(Vector3(side*(.46+slot*.10),2.369,.107),Vector3(.068,.032,.014),Color("293539"))
+	# The steel threshold sits just above the deck and continues under the field.
+	kit.box(Vector3(0,.009,-.41),Vector3(2.30,.020,1.22),Color("485658"))
+	for depth: float in [-.42,-.29,-.16,-.03]:
+		kit.box(Vector3(0,.020,depth),Vector3(1.94,.005,.018),Color("1c262b"))
+	kit.finish()
 
 func _build_metal_shutter(portal: Node3D, material: ShaderMaterial) -> void:
 	# The shutter fills the throat behind the inner bevel at Z=-.09.
@@ -185,15 +250,22 @@ func _build_field(portal: Node3D,tint: Color) -> void:
 	field_material = ShaderMaterial.new()
 	field_material.shader = preload("res://shaders/lab_door_field.gdshader")
 	field_material.set_shader_parameter("pole_color",tint)
+	field_material.set_shader_parameter("recessed",textured_portal)
+	var blue_polarity := not sealed and pole == Pole.BLUE
+	field_material.set_shader_parameter("blue_polarity",blue_polarity)
 	var kit := Kit.new(live_field)
-	kit.quad(Vector3(0,1.04,.035),Vector2(2.16,2.02),field_material)
+	var field_depth := RECESSED_FIELD_DEPTH if textured_portal else .035
+	kit.quad(Vector3(0,1.075 if textured_portal else 1.04,field_depth),
+		Vector2(2.20,2.1) if textured_portal else Vector2(2.16,2.02),field_material)
 	field_indicator = ShaderMaterial.new()
 	field_indicator.shader = preload("res://shaders/lab_service_lamp.gdshader")
 	field_indicator.set_shader_parameter("tint",tint)
 	for side in [-1.0,1.0]:
-		for y in [.42,1.04,1.66]:
-			kit.quad(Vector3(side*1.108,y,.109),Vector2(.026,.085),field_indicator)
-	kit.quad(Vector3(0,2.335,.13),Vector2(.37,.021),field_indicator)
+		for y in ELECTRODE_HEIGHTS if textured_portal else [.42,1.04,1.66]:
+			var emitter := Vector3(side*1.079,y,-.085) if textured_portal else Vector3(side*1.108,y,.109)
+			kit.quad(emitter,Vector2(.043,.104) if blue_polarity else Vector2(.026,.085),field_indicator)
+	var header := Vector3(0,2.372,.138) if textured_portal else Vector3(0,2.335,.13)
+	kit.quad(header,Vector2(.37,.031) if blue_polarity else Vector2(.37,.021),field_indicator)
 	var glow := ShaderMaterial.new()
 	glow.shader = preload("res://shaders/lab_halo.gdshader")
 	glow.set_shader_parameter("light_color",tint)

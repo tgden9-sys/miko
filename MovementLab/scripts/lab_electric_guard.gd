@@ -18,8 +18,11 @@ func _ready() -> void:
 	name = "ElectricShield"
 	paint = ShaderMaterial.new()
 	paint.shader = preload("res://shaders/lab_electric_guard.gdshader")
-	var surface := QuadMesh.new()
-	surface.size = Vector2(1.24, 2.11)
+	var surface := CapsuleMesh.new()
+	surface.radius = 0.88
+	surface.height = 2.15
+	surface.radial_segments = 64
+	surface.rings = 32
 	field = MeshInstance3D.new()
 	field.mesh = surface
 	field.material_override = paint
@@ -33,7 +36,7 @@ func _ready() -> void:
 	add_child(interception)
 	bolt_shape = CollisionShape3D.new()
 	var plate := BoxShape3D.new()
-	plate.size = Vector3(.16, 1.39, .72)
+	plate.size = Vector3(2.0, 2.15, 1.8)
 	bolt_shape.shape = plate
 	bolt_shape.disabled = true
 	interception.add_child(bolt_shape)
@@ -57,12 +60,17 @@ func set_guard(active: bool, facing: int, cells: int) -> void:
 	raised = active
 	_set_bolt_interception(active)
 	if active:
-		position = Vector3(facing * .82, .99, .36)
-		bolt_shape.position = Vector3(facing * .29, 0.0, -.36)
+		position = Vector3(0.0, 0.90, 0.0)
+		bolt_shape.position = Vector3.ZERO
 		paint.set_shader_parameter("direction_sign", float(facing))
 		paint.set_shader_parameter("cells", float(cells))
 		show()
 		set_process(true)
+	else:
+		strength = 0.0
+		paint.set_shader_parameter("strength", 0.0)
+		hide()
+		set_process(false)
 
 func _set_bolt_interception(active: bool) -> void:
 	if active != blocks_bolts:
@@ -79,6 +87,8 @@ func absorb(cells_left: int, contact: Vector3) -> void:
 	paint.set_shader_parameter("cells", float(cells_left))
 	var impact_height := clampf((contact.y - global_position.y) / .88, -.78, .78) if contact.is_finite() else 0.0
 	paint.set_shader_parameter("impact_height", impact_height)
+	var impact_side := 1.0 if (contact.is_finite() and contact.x >= global_position.x) else -1.0
+	paint.set_shader_parameter("impact_side", impact_side)
 	audio.pitch_scale = .91 if cells_left == 0 else 1.08 + .08 * cells_left
 	audio.play()
 

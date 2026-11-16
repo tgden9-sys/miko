@@ -3,10 +3,13 @@ extends RefCounted
 const CELL := .5
 const SCENES := [
 	"res://lab_haulage_run.tscn",
+	"res://lab_maintenance_hall.tscn",
 	"res://lab_pressure_bridge.tscn",
 	"res://lab_filter_cascade.tscn",
 	"res://lab_coolant_sump.tscn",
 	"res://lab_relay_bench.tscn",
+	"res://lab_relay_vault.tscn",
+	"res://lab_hover_boss_arena.tscn",
 ]
 
 # Rectangles are in world metres. The common cutaway shell fits both doors and
@@ -52,25 +55,41 @@ const ROOMS := [
 	},
 	{
 		"art": "relay", "width": 36.0, "bottom": -2.0, "top": 10.0,
-		"entrance": Vector2(0, 0), "exit": Vector2(36, 4),
+		"entrance": Vector2(0, 0), "exit": Vector2(36, -2),
 		"openings": [Rect2(0, 0, 12, 6), Rect2(12, 1.5, 4, 6.5), Rect2(16, -2, 6, 12),
-			Rect2(22, 2.5, 5, 7.5), Rect2(27, 4, 9, 6)],
-		"solid": [Rect2(17, -1, 2.5, .5), Rect2(19, .75, 2.5, .75)],
-		"lights": [Vector2(5, 4.8), Vector2(13.5, 6.5), Vector2(19, 8.2), Vector2(25, 8.8), Vector2(32, 8.8)],
-		"vents": [Vector3(7, 0, -1.1), Vector3(14, 1.5, -1.1), Vector3(31.5, 4, -1.1)],
+			Rect2(22, -2, 14, 3), Rect2(22, 2.5, 5, 7.5), Rect2(27, 4, 3, 6), Rect2(30, -2, 3.5, 12)],
+		"solid": [Rect2(16, -1.5, 1.5, .5), Rect2(19, .75, 2.5, .75)],
+		"lights": [Vector2(5, 4.8), Vector2(13.5, 6.5), Vector2(19, 8.2), Vector2(25, 8.8), Vector2(31.5, 6.8), Vector2(27, .64), Vector2(34.6, .64)],
+		"vents": [Vector3(7, 0, -1.1), Vector3(14, 1.5, -1.1), Vector3(28, -2, -1.1)],
 		"metal": Color(1.14, .99, .93), "ambient": Vector3(.86, .75, .73), "lamp": Color("ffe0ca"),
 	},
 	{
 		"art": "maintenance", "width": 46.0, "bottom": 0.0, "top": 14.0,
 		"entrance": Vector2(0, 0), "exit": Vector2(46, 0), "locked_door": Vector3(46, 7.5, 0),
-		"service_bay": Rect2(46, 7.5, 3.5, 2.5),
-		"openings": [Rect2(0, 0, 14, 9), Rect2(14, 0, 18, 14), Rect2(32, 0, 14, 12), Rect2(46, 7.5, 3.5, 2.5)],
+		"openings": [Rect2(0, 0, 14, 9), Rect2(14, 0, 18, 14), Rect2(32, 0, 14, 12)],
 		"solid": [Rect2(14, 0, 16, 1.5), Rect2(19, 1.5, 8, 1), Rect2(27.5, 4, 3.5, .5),
 			Rect2(32.5, 6, 4.5, .5), Rect2(37.5, 7, 8.5, .5)],
 		"lights": [Vector2(4, 6.8), Vector2(12, 7.6), Vector2(20, 8.8), Vector2(28, 10.9),
 			Vector2(35, 10.7), Vector2(41, 10.85), Vector2(41, 5.7)],
 		"vents": [Vector3(8, 0, -1.1), Vector3(22, 2.5, -1.1), Vector3(39, 0, -1.1), Vector3(41.5, 7.5, -1.1)],
 		"metal": Color(1.06, 1.02, .92), "ambient": Vector3(.81, .83, .75), "lamp": Color("ffdfb7"),
+	},
+	{
+		"art": "relay", "width": 20.0, "bottom": 0.0, "top": 5.5,
+		"entrance": Vector2(0, 0), "exit": Vector2(20, 0), "closed_room": true,
+		"openings": [Rect2(0, 0, 20, 5.5)],
+		"solid": [],
+		"lights": [Vector2(4, 4.65), Vector2(9.5, 4.65), Vector2(17.2, 4.45)],
+		"vents": [Vector3(2.1, 0, -1.1)],
+		"metal": Color(.86, .97, 1.04), "ambient": Vector3(.68, .78, .79), "lamp": Color("c7ede1"),
+	},
+	{
+		"art": "boss_arena", "width": 36.0, "bottom": 0.0, "top": 11.0,
+		"entrance": Vector2(0, 0), "exit": Vector2(36, 0), "closed_room": true,
+		"openings": [Rect2(0, 0, 36, 11)], "solid": [],
+		"lights": [Vector2(5, 8.4), Vector2(16, 8.8), Vector2(28.5, 8.6), Vector2(33, 7.7)],
+		"vents": [Vector3(6, 0, -1.1), Vector3(25, 0, -1.1)],
+		"metal": Color(.83, .92, 1.03), "ambient": Vector3(.63, .72, .81), "lamp": Color("d7dded"),
 	},
 ]
 
@@ -102,8 +121,13 @@ func _init(index: int) -> void:
 	openings = room.openings.duplicate()
 	solids = room.solid
 	for door: Vector3 in [ENTRANCE, EXIT]:
+		if door == EXIT and room.get("closed_room",false):
+			continue
 		var tunnel_x := -4.0 if door.x == 0.0 else width
 		openings.append(Rect2(tunnel_x, door.y, 4, 2.5))
+	if room.has("locked_door"):
+		var door: Vector3 = room.locked_door
+		openings.append(Rect2(door.x,door.y,4,2.5))
 
 func solid(point: Vector2) -> bool:
 	for block: Rect2 in solids:
@@ -115,6 +139,4 @@ func solid(point: Vector2) -> bool:
 	return true
 
 func foreground_solid(point: Vector2) -> bool:
-	if room.has("service_bay") and room.service_bay.has_point(point):
-		return false
 	return point.x < 0.0 or point.x >= room.width or solid(point)

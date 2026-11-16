@@ -5,13 +5,13 @@ const CORE := preload("res://models/props/lab_relay_core.glb")
 const CLICK := preload("res://audio/impactMetal_heavy_001.ogg")
 const SHUTTER_SOUND := preload("res://audio/impactPlate_heavy_000.ogg")
 const PROGRESS := &"maintenance_relay_progress"
-const PICKUP := Vector3(22.25, 3.06, -.75)
 const SOCKET := Vector3(44.32, 8.55, -.74)
 const DOCKED_CORE := SOCKET + Vector3(-.25, 0, .05)
 enum State { CRADLED, HELD, INSTALLED }
 
 var actor: CharacterBody3D
 var shutter: Node3D
+var pickup := Vector3(10.65,.56,-.75)
 var core: Node3D
 var status_lamp: ShaderMaterial
 var sound: AudioStreamPlayer3D
@@ -19,12 +19,13 @@ var state := State.CRADLED
 var age := 0.0
 
 func _ready() -> void:
-	_build_cradle()
-	_build_adapter()
-	_build_service_bay()
+	if shutter:
+		_build_adapter()
+	else:
+		_build_cradle()
 	core = CORE.instantiate()
 	add_child(core)
-	core.position = PICKUP
+	core.position = pickup
 	var halo := ShaderMaterial.new()
 	halo.shader = preload("res://shaders/lab_halo.gdshader")
 	halo.set_shader_parameter("light_color", Color("ffdc99"))
@@ -34,24 +35,24 @@ func _ready() -> void:
 	sound.max_distance = 13.0
 	add_child(sound)
 	state = get_tree().get_meta(PROGRESS, State.CRADLED)
-	if state == State.HELD:
-		core.hide()
-	elif state == State.INSTALLED:
+	core.visible = not shutter and state == State.CRADLED
+	if shutter and state == State.INSTALLED:
 		core.position = DOCKED_CORE
+		core.show()
 		_power_socket(false)
 
 func _physics_process(delta: float) -> void:
-	if state == State.CRADLED:
+	if not shutter and state == State.CRADLED:
 		age += delta
-		core.position.y = PICKUP.y + sin(age * 2.8) * .025
+		core.position.y = pickup.y + sin(age * 2.8) * .025
 		core.rotation.y = sin(age * 1.47) * .12
 	if not is_instance_valid(actor) or actor.automation or actor.health <= 0:
 		return
-	if state == State.CRADLED and _reachable(PICKUP, .67):
+	if not shutter and state == State.CRADLED and _reachable(pickup, .67):
 		_set_progress(State.HELD)
 		core.hide()
-		_play(CLICK, PICKUP, 1.75, -12.0)
-	elif state == State.HELD and _reachable(SOCKET, 1.10):
+		_play(CLICK, pickup, 1.75, -12.0)
+	elif shutter and state == State.HELD and _reachable(SOCKET, 1.10):
 		_insert_core()
 
 func _reachable(at: Vector3, distance: float) -> bool:
@@ -94,7 +95,7 @@ func _play(stream: AudioStream, at: Vector3, pitch: float, volume: float) -> voi
 
 func _build_cradle() -> void:
 	var kit := Kit.new(self, Kit.bulkhead_paint())
-	var base := PICKUP - Vector3.UP * .56
+	var base := pickup - Vector3.UP * .56
 	kit.plate(base + Vector3(0, .065, 0), Vector3(1.04, .13, .55), Color("3c4949"))
 	kit.plate(base + Vector3(0, .20, -.06), Vector3(.70, .32, .37), Color("435254"))
 	kit.box(base + Vector3(0, .382, 0), Vector3(.67, .05, .35), Color("182527"))
@@ -122,17 +123,3 @@ func _build_adapter() -> void:
 	kit.quad(SOCKET + Vector3(.21, .34, -.012), Vector2(.20, .035), status_lamp)
 	kit.finish()
 
-func _build_service_bay() -> void:
-	var kit := Kit.new(self, Kit.bulkhead_paint())
-	kit.plate(Vector3(47.75, 8.75, -2.23), Vector3(3.5, 2.5, .20), Color("303e40"))
-	kit.plate(Vector3(47.82, 8.87, -2.10), Vector3(1.62, .94, .13), Color("445457"))
-	kit.box(Vector3(47.82, 8.87, -2.026), Vector3(1.30, .57, .035), Color("1c292a"))
-	for index in 4:
-		kit.box(Vector3(47.82, 8.71 + index * .11, -2.003), Vector3(1.22, .028, .042), Color("4c5c5b"))
-	kit.box(Vector3(47.83, 8.09, -2.10), Vector3(3.28, .12, .13), Color("273537"))
-	kit.plate(Vector3(48.98, 8.75, -2.102), Vector3(.16, 2.44, .16), Color("505d5d"))
-	for y in [8.30, 9.21]:
-		kit.plate(Vector3(48.98, y, -2.015), Vector3(.22, .12, .105), Color("637171"))
-	kit.plate(Vector3(47.82, 9.57, -2.02), Vector3(.95, .16, .15), Color("394a4b"))
-	kit.box(Vector3(47.82, 9.56, -1.934), Vector3(.70, .038, .02), Color("a6c5ae"), true)
-	kit.finish()

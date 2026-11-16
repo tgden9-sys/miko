@@ -8,13 +8,14 @@ const GalleryLayout := preload("res://scripts/lab_condensate_gallery_layout.gd")
 const Expansion := preload("res://scripts/lab_expansion_layout.gd")
 const RailGun := preload("res://scripts/lab_rail_gun.gd")
 const RedScout := preload("res://scripts/lab_red_scout.gd")
+const BOSS_ROOM := "res://lab_hover_boss_arena.tscn"
+const MAINTENANCE_HALL := "res://lab_maintenance_hall.tscn"
 const ROOM_SCENES := [
 	"res://lab_cutaway.tscn",
 	"res://lab_thermal_exchange.tscn",
 	"res://lab_coolant_shaft.tscn",
 	"res://lab_relay_switchback.tscn",
 	"res://lab_condensate_gallery.tscn",
-	"res://lab_maintenance_hall.tscn",
 ] + Expansion.SCENES
 const TRANSFER_META := &"cutaway_door_arrival"
 const Kit := preload("res://scripts/lab_art_kit.gd")
@@ -38,6 +39,8 @@ var vents: Array
 var arriving := false
 var returning_to_lab := false
 var gate: Node3D
+var service_gate: Node3D
+var active_exit: Node3D
 var complete := false
 var leaving := false
 var exit_fade: ColorRect
@@ -48,7 +51,9 @@ var wall_turrets: Array[StaticBody3D] = []
 var hover_drone: Node3D
 var mine_crawler: CharacterBody3D
 var relay_station: Node3D
+var vault_crate: RigidBody3D
 var rail_gun: Node3D
+var hover_boss: Node3D
 var crate_step: Node3D
 var entrance_inward := 1.0
 var exit_outward := 1.0
@@ -63,7 +68,9 @@ func _ready() -> void:
 	room_index = ROOM_SCENES.find(scene_file_path)
 	if room_index > 0:
 		previous_room = ROOM_SCENES[room_index - 1]
-	if room_index >= 0 and room_index + 1 < ROOM_SCENES.size():
+	if scene_file_path == BOSS_ROOM:
+		previous_room = MAINTENANCE_HALL
+	if room_index >= 0 and room_index + 1 < ROOM_SCENES.size() and ROOM_SCENES[room_index + 1] != BOSS_ROOM:
 		next_room = ROOM_SCENES[room_index + 1]
 	if coolant_shaft:
 		layout = ShaftLayout
@@ -92,7 +99,17 @@ func _ready() -> void:
 	for child in get_children():
 		if child is WorldEnvironment:
 			child.environment.background_color = Color("020405")
-	gate.actor = actor
+	if gate:
+		gate.actor = actor
+	if hover_boss:
+		hover_boss.target = actor
+	var entry_clip := Vector3(layout.ENTRANCE.x,layout.ENTRANCE.y,-entrance_inward)
+	var exit_clip := Vector3(layout.EXIT.x,layout.EXIT.y,exit_outward) if gate else Vector3.ZERO
+	var branch_clip := Vector3(service_gate.position.x,service_gate.position.y,1) if service_gate else Vector3.ZERO
+	for material: ShaderMaterial in actor.suit_materials + actor.blade_materials:
+		material.set_shader_parameter("cutaway_entry",entry_clip)
+		material.set_shader_parameter("cutaway_exit",exit_clip)
+		material.set_shader_parameter("cutaway_branch",branch_clip)
 	for material in actor.suit_materials:
 		_set_lab_lighting(material)
 		material.set_shader_parameter("room_lighting",.55)
@@ -107,10 +124,13 @@ func _ready() -> void:
 		actor.shield_recharge_time = state.get("shield_recharge_time", 0.0)
 		returning_to_lab = state.get("returning", false)
 		if returning_to_lab:
-			actor.position = layout.EXIT+Vector3(1.65*exit_outward,.04,0)
+			active_exit = service_gate if state.get("service_return",false) and service_gate else gate
+			var return_at: Vector3 = active_exit.position if active_exit else layout.EXIT
+			actor.position = return_at+Vector3(1.65*exit_outward,.04,0)
 			actor.facing = int(-exit_outward)
-			gate.open_for_return()
-			checkpoint = Vector3(34,4.04,0) if previous_room.is_empty() else layout.EXIT+Vector3(-3*exit_outward,.04,0)
+			if active_exit == gate and gate:
+				gate.open_for_return()
+			checkpoint = Vector3(34,4.04,0) if previous_room.is_empty() else return_at+Vector3(-3*exit_outward,.04,0)
 		else:
 			actor.position = layout.ENTRANCE+Vector3(-.85*entrance_inward,.04,0)
 			actor.facing = int(entrance_inward)
@@ -120,6 +140,7 @@ func _ready() -> void:
 		suit_readout.hide()
 		suit_readout.set_process(false)
 		arriving = true
+		_update_actor_occlusion()
 	_update_camera(10)
 
 func _set_lab_lighting(material: ShaderMaterial) -> void:
@@ -168,6 +189,12 @@ func _set_lab_lighting(material: ShaderMaterial) -> void:
 func _build_course() -> void:
 	var shell := preload("res://scripts/lab_cutaway_shell.gd").new()
 	shell.layout = layout
+	shell.finished_edges = true
+	shell.authored_details = layout == Layout
+	shell.show_exit_reveal = not (expansion_layout and expansion_layout.room.get("closed_room",false))
+	if expansion_layout and expansion_layout.room.has("locked_door"):
+		shell.extra_door_reveals.append(expansion_layout.room.locked_door)
+	shell.vents = vents
 	shell.metal_tint = THERMAL_METAL if thermal_exchange else Color.WHITE
 	if coolant_shaft:
 		shell.metal_tint = SHAFT_METAL
@@ -175,6 +202,9 @@ func _build_course() -> void:
 		shell.metal_tint = Color(1.13,1.03,.91) if upper_room == 1 else Color(.91,.92,1.12)
 	if expansion_layout:
 		shell.metal_tint = expansion_layout.room.metal
+	shell.depth_tint = Color("e8bd8e") if thermal_exchange else Color("b1d4da")
+	if expansion_layout:
+		shell.depth_tint = expansion_layout.room.lamp
 	add_child(shell)
 	var kit := Kit.new(self)
 	var paint := ShaderMaterial.new()
@@ -250,13 +280,23 @@ func _build_course() -> void:
 	entrance.sealed = previous_room.is_empty()
 	entrance.passage_direction = entrance_inward
 	entrance.metal_tint = shell.metal_tint
+	entrance.textured_portal = true
 	add_child(entrance)
-	gate = door_type.new()
-	gate.position = layout.EXIT
-	gate.passage_direction = exit_outward
-	gate.pole = 1 if coolant_shaft or (expansion_layout and expansion_room % 2 == 1) else 2
-	gate.metal_tint = shell.metal_tint
-	add_child(gate)
+	if shell.show_exit_reveal:
+		gate = door_type.new()
+		gate.position = layout.EXIT
+		gate.passage_direction = exit_outward
+		gate.pole = 1 if coolant_shaft or (expansion_layout and expansion_room % 2 == 1) else 2
+		gate.metal_tint = shell.metal_tint
+		gate.textured_portal = entrance.textured_portal
+		add_child(gate)
+	elif scene_file_path == "res://lab_relay_vault.tscn":
+		_build_vault_puzzle(shell.metal_tint)
+	elif scene_file_path == BOSS_ROOM:
+		hover_boss = preload("res://scripts/lab_hover_boss_display.gd").new()
+		hover_boss.left_wall = layout.ENTRANCE.x
+		hover_boss.right_wall = layout.EXIT.x
+		add_child(hover_boss)
 	if expansion_layout and expansion_layout.room.has("locked_door"):
 		var locked := door_type.new()
 		locked.name = "LockedServiceDoor"
@@ -264,11 +304,37 @@ func _build_course() -> void:
 		locked.sealed = true
 		locked.metal_shutter = true
 		locked.metal_tint = shell.metal_tint
+		locked.textured_portal = true
 		add_child(locked)
+		service_gate = locked
 		relay_station = preload("res://scripts/lab_relay_station.gd").new()
 		relay_station.name = "RelayStation"
 		relay_station.shutter = locked
 		add_child(relay_station)
+
+func _build_vault_puzzle(tint: Color) -> void:
+	const PLATE_X := 9.4
+	var laser := preload("res://scripts/lab_relay_laser_gate.gd").new()
+	laser.name = "VaultLaser"
+	laser.position.x = 13.25
+	laser.metal_tint = tint
+	add_child(laser)
+	vault_crate = preload("res://scripts/lab_training_crate.gd").new()
+	vault_crate.name = "VaultCrate"
+	vault_crate.position = Vector3(5.4,.402,0)
+	vault_crate.stop_x = PLATE_X
+	vault_crate.charge_squash = false
+	add_child(vault_crate)
+	var pressure_plate := preload("res://scripts/lab_relay_pressure_plate.gd").new()
+	pressure_plate.name = "VaultPressurePlate"
+	pressure_plate.position.x = PLATE_X
+	pressure_plate.crate = vault_crate
+	pressure_plate.laser = laser
+	add_child(pressure_plate)
+	relay_station = preload("res://scripts/lab_relay_station.gd").new()
+	relay_station.name = "RelayPickup"
+	relay_station.pickup = Vector3(17.55,.56,-.75)
+	add_child(relay_station)
 
 func _build_service_ledge(first_x: float, underside: float, spacing: float, tint: Color) -> void:
 	# Cantilevered steps meet the rear wall at bolted gussets.
@@ -360,6 +426,9 @@ func _add_shaft_turret(label: String, at: Vector3, yaw: float, entry_grace := 0.
 	wall_turrets.append(turret)
 
 func _spawn_crates() -> void:
+	if not thermal_exchange and not coolant_shaft and upper_room == 0 and expansion_room < 0:
+		_spawn_level_1_wooden_crates()
+		return
 	if upper_room == 0:
 		return
 	crate_step = preload("res://scripts/lab_crate_step.gd").new()
@@ -372,6 +441,23 @@ func _spawn_crates() -> void:
 	crate_step.progress_key = StringName("cutaway_crate_step_%d" % upper_room)
 	crate_step.hint_layer = suit_readout.get_parent()
 	add_child(crate_step)
+
+func _spawn_level_1_wooden_crates() -> void:
+	var crate_spawns: Array[Dictionary] = [
+		{"pos": Vector3(23.85, 0.0, 0.0), "settle": false},
+		{"pos": Vector3(23.85, 0.8, 0.0), "settle": true},
+		{"pos": Vector3(23.85, 1.6, 0.0), "settle": true},
+		{"pos": Vector3(23.85, 2.4, 0.0), "settle": true},
+		{"pos": Vector3(24.65, 0.0, 0.0), "settle": false},
+	]
+	for i in range(crate_spawns.size()):
+		var spec: Dictionary = crate_spawns[i]
+		var wc = preload("res://scripts/miko8_wooden_crate.gd").new()
+		wc.name = "Level1_WoodenCrate_%d" % (i + 1)
+		wc.position = spec.pos
+		wc.settle_stack = spec.settle
+		add_child(wc)
+		wooden_crates.append(wc)
 
 func _update_wave_spawner(_delta: float) -> void:
 	pass
@@ -405,8 +491,20 @@ func _build_ui() -> void:
 	diagnostics.add_theme_font_size_override("font_size",22)
 	diagnostics.add_theme_color_override("font_color",Color("d8eee9"))
 	fps_panel.add_child(diagnostics)
+	if room_index >= 0:
+		var level_panel := PanelContainer.new()
+		level_panel.name = "LevelNumber"
+		level_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hud.add_child(level_panel)
+		level_panel.position = Vector2(20,18)
+		level_panel.add_theme_stylebox_override("panel",skin)
+		var number := Label.new()
+		number.text = "LEVEL %d" % (room_index + 1)
+		number.add_theme_font_size_override("font_size",22)
+		number.add_theme_color_override("font_color",Color("d8eee9"))
+		level_panel.add_child(number)
 	status = Label.new()
-	status.position = Vector2(24,47)
+	status.position = Vector2(24,68)
 	status.add_theme_font_size_override("font_size",20)
 	hud.add_child(status)
 	exit_fade = ColorRect.new()
@@ -423,6 +521,11 @@ func _update_status() -> void:
 	status.text = "LAB COMPLETE" if complete else ""
 
 func reset_room() -> void:
+	if vault_crate:
+		vault_crate.reset_charge_body()
+	for wc in wooden_crates:
+		if is_instance_valid(wc) and wc.has_method("reset_crate"):
+			wc.reset_crate()
 	if crate_step:
 		crate_step.reset()
 	if scout:
@@ -435,10 +538,13 @@ func reset_room() -> void:
 		mine_crawler.reset()
 	if rail_gun:
 		rail_gun.reset()
+	if hover_boss:
+		hover_boss.reset()
 	if leaving or arriving:
 		actor.automation = false
 	arriving = false
 	returning_to_lab = false
+	active_exit = null
 	leaving = false
 	complete = false
 	if exit_fade:
@@ -447,6 +553,7 @@ func reset_room() -> void:
 		suit_readout.set_process(true)
 	actor.reset()
 	actor.position = checkpoint
+	actor.show()
 	actor.facing = int(entrance_inward)
 	if step_fx:
 		step_fx.clear()
@@ -487,13 +594,13 @@ func _update_camera(delta: float) -> void:
 		target_y = clampf(p.y+2.8,3.5,9.1 if upper_room == 1 else 10.8)
 	if expansion_layout:
 		var width: float = expansion_layout.room.width
-		if expansion_layout.room.has("service_bay") and p.y > 7.15:
-			width += smoothstep(45.7, 48.0, p.x) * expansion_layout.room.service_bay.size.x
 		var bottom: float = expansion_layout.room.bottom
 		var top: float = expansion_layout.room.top
 		var margin := maxf(0.0,half_width-1.15)
 		target_x = clampf(p.x+actor.facing*.7,margin,width-margin) if margin*2 < width else width*.5
 		target_y = clampf(p.y+2.5,bottom+2.9,maxf(bottom+2.9,top-3.1))
+		if scene_file_path == BOSS_ROOM:
+			target_y = 3.65
 	camera_focus = lerpf(camera_focus,target_x,1-exp(-delta*6))
 	camera_height = lerpf(camera_height,target_y,1-exp(-delta*5))
 	var focus := Vector3(camera_focus,camera_height,0)
@@ -511,8 +618,22 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if error != OK:
 		push_error("Could not open the next expansion room: %s" % error)
 
+func _update_actor_occlusion() -> void:
+	var point := actor.position
+	var past_exit: bool = gate != null and (point.x-layout.EXIT.x)*exit_outward > .55 and absf(point.y-layout.EXIT.y) < .40
+	if service_gate and point.x > service_gate.position.x+.55 and absf(point.y-service_gate.position.y) < .40:
+		past_exit = true
+	var behind_entry: bool = (layout.ENTRANCE.x-point.x)*entrance_inward > .55 and absf(point.y-layout.ENTRANCE.y) < .40
+	# The clipping plane handles the crossing. Hide remaining attached effects deep in the tunnel.
+	actor.visible = not (past_exit or behind_entry)
+
 func _update_network_transfer(delta: float) -> void:
-	var exit_distance: float = (actor.position.x-layout.EXIT.x)*exit_outward
+	_update_actor_occlusion()
+	var portal: Node3D = active_exit if active_exit else gate
+	if not active_exit and service_gate and service_gate.service_open and absf(actor.position.y-service_gate.position.y) < .28:
+		portal = service_gate
+	var exit_position: Vector3 = portal.position if portal else layout.EXIT
+	var exit_distance: float = (actor.position.x-exit_position.x)*exit_outward
 	var entry_distance: float = (actor.position.x-layout.ENTRANCE.x)*entrance_inward
 	if arriving:
 		exit_fade.color.a = move_toward(exit_fade.color.a,0,delta*4.0)
@@ -522,8 +643,9 @@ func _update_network_transfer(delta: float) -> void:
 			actor.automation = false
 			arriving = false
 			returning_to_lab = false
+			active_exit = null
 		else:
-			var visible_in_room := exit_distance < 0 if returning_to_lab else entry_distance >= 0
+			var visible_in_room := exit_distance < -.28 if returning_to_lab else entry_distance >= .28
 			suit_readout.visible = visible_in_room
 			suit_readout.set_process(visible_in_room)
 			return
@@ -535,14 +657,16 @@ func _update_network_transfer(delta: float) -> void:
 	elif not leaving:
 		exit_fade.color.a = move_toward(exit_fade.color.a,0,delta*5)
 	if not leaving:
-		var past_exit: bool = exit_distance >= .15 and absf(actor.position.y-layout.EXIT.y) < .25
-		var behind_entrance: bool = entry_distance < -.15 and absf(actor.position.y-layout.ENTRANCE.y) < .25
+		# Pull the floating HUD down before it can project through the cutaway cheek.
+		var past_exit: bool = portal != null and exit_distance >= -.28 and absf(actor.position.y-exit_position.y) < .28
+		var behind_entrance: bool = entry_distance < .28 and absf(actor.position.y-layout.ENTRANCE.y) < .28
 		var in_view := not (past_exit or behind_entrance)
 		if suit_readout.visible != in_view:
 			suit_readout.visible = in_view
 			suit_readout.set_process(in_view)
-	if exit_distance > .9 and absf(actor.position.y-layout.EXIT.y) < .25 and actor.is_on_floor() and not leaving:
+	if portal and exit_distance > .9 and absf(actor.position.y-exit_position.y) < .25 and actor.is_on_floor() and not leaving:
 		leaving = true
+		active_exit = portal
 		suit_readout.hide()
 		suit_readout.set_process(false)
 		actor.automation = true
@@ -552,8 +676,9 @@ func _update_network_transfer(delta: float) -> void:
 		exit_fade.color.a = move_toward(exit_fade.color.a,1,delta*1.7)
 		complete = exit_fade.color.a >= 1
 		if complete:
-			if connect_exit and not next_room.is_empty():
-				_transfer_through_door.call_deferred(next_room,false)
+			var destination := BOSS_ROOM if active_exit == service_gate else next_room
+			if connect_exit and not destination.is_empty():
+				_transfer_through_door.call_deferred(destination,false)
 			else:
 				status.move_to_front()
 
@@ -562,6 +687,7 @@ func _transfer_through_door(destination: String, returning: bool) -> void:
 	tree.set_meta(TRANSFER_META, {
 		"health": actor.health, "pole": actor.suit_polarity, "returning": returning,
 		"shield_hits": actor.shield_hits, "shield_recharge_time": actor.shield_recharge_time,
+		"service_return": returning and scene_file_path == BOSS_ROOM,
 	})
 	var error := tree.change_scene_to_file(destination)
 	if error != OK:

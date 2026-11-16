@@ -2,6 +2,7 @@ shader_type spatial;
 render_mode unshaded;
 #include "res://shaders/miko8_transfer_common.gdshaderinc"
 #include "res://shaders/lab_room_light.gdshaderinc"
+#include "res://shaders/lab_cutaway_passage.gdshaderinc"
 uniform sampler2D base_texture : source_color, filter_linear_mipmap_anisotropic;
 uniform sampler2D metal_rough_texture : filter_linear_mipmap_anisotropic;
 uniform float metallic_factor=1.0;
@@ -49,6 +50,7 @@ void vertex(){
 void fragment(){
  if(dissolve>0.0 && dissolve>=fract(52.9829189*fract(dot(FRAGCOORD.xy,vec2(0.06711056,0.00583715))))) discard;
  vec3 transfer_point=(INV_VIEW_MATRIX*vec4(VERTEX,1.)).xyz;
+ if(behind_cutaway_wall(transfer_point)) discard;
  if(transfer_progress>0. && transfer_distance(transfer_point)<0.)discard;
  vec3 base=texture(base_texture,UV).rgb;
  if (red_paint_tint.g > 0.0) {
